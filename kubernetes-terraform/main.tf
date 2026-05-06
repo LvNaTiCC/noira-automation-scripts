@@ -37,7 +37,7 @@ resource "proxmox_virtual_environment_vm" "k8s-cp" {
 
     ip_config {
       ipv4 {
-        address = "${each.value.ip}/{${var.network_mask}}"
+        address = "${each.value.ip}/${var.network_mask}"
       }
     }
 
