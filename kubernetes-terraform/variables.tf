@@ -11,11 +11,6 @@ variable "worker_vm_cores" {
   default = 8
 }
 
-variable "worker_vm_cores" {
-  type    = number
-  default = 8
-}
-
 variable "worker_vm_disk_size_gb" {
   type    = number
   default = 300
