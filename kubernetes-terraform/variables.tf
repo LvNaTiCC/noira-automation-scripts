@@ -21,12 +21,12 @@ variable "worker_vm_disk_size_gb" {
   default = 300
 }
 
-variable "cp_vm_cores {
+variable "cp_vm_cores" {
   type = number
   default = 4
 }
 
-variable "cp_vm_disk_size_gb {
+variable "cp_vm_disk_size_gb" {
   type = number
   default = 50
 }
