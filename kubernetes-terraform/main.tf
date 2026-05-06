@@ -113,3 +113,18 @@ resource "proxmox_virtual_environment_vm" "k8s-node" {
     bridge = var.vm_if_bridge
   }
 }
+
+resource "local_file" "ansible_inventory" {
+  filename = "${path.module}/inventory.ini"
+  content = <<-EOT
+  [kube_control_plane]
+  ${join("\n", local.control_plane_hosts)}
+
+  [kube_node]
+  ${join("\n", local.worker_hosts)}
+
+  [kubernetes:children]
+  kube_control_plane
+  kube_node
+  EOT
+}
