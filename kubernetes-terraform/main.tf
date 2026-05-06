@@ -26,10 +26,60 @@ resource "proxmox_virtual_environment_vm" "k8s-cp" {
 
   cpu {
     cores = var.cp_vm_cores
+    type = "host"
   }
 
   memory {
     dedicated = var.cp_vm_memory_mb
+  }
+
+  initialization {
+    datastore_id = var.vm_disks_datastore_id
+
+    ip_config {
+      ipv4 {
+        address = "${each.value.ip}/${var.network_mask}"
+      }
+    }
+
+    dns {
+      servers = var.vm_dns_servers
+    }
+
+    user_account {
+      username = local.default_user_account.username
+      keys = local.default_user_account.keys
+    }
+  }
+
+  disk {
+    interface = "scsi0"
+    datastore_id = var.vm_disks_datastore_id
+    size = var.cp_vm_disk_size_gb
+  }
+
+  network_device {
+    bridge = var.vm_if_bridge
+  }
+}
+
+resource "proxmox_virtual_environment_vm" "k8s-node" {
+  for_each = local.k8s_node_vms
+
+  node_name = each.value.node
+  name = each.key
+
+  clone {
+    vm_id = var.vm_clone_vmid
+  }
+
+  cpu {
+    cores = var.node_vm_cores
+    type = "host"
+  }
+
+  memory {
+    dedicated = var.node_vm_memory_mb
   }
 
   initialization {
