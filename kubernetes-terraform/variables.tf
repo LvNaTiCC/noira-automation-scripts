@@ -72,7 +72,7 @@ variable "vm_clone_vmid" {
 } 
 
 variable "vm_clone_host" {
-  type = number
+  type = string
 } 
 
 variable "cp_vm_prefix" {
