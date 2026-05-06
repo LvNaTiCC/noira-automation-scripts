@@ -22,6 +22,7 @@ resource "proxmox_virtual_environment_vm" "k8s-cp" {
 
   clone {
     vm_id = var.vm_clone_vmid
+    node_name = var.vm_clone_host
   }
 
   cpu {
