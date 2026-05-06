@@ -9,9 +9,9 @@
       when: ansible_swaptotal_mb > 0
 
     - name: Remove swap from fstab
-      repalce:
+      replace:
         path: /etc/fstab
-        regeexp: '^\s*[^#]\S*\s+swap\s+'
+        regexp: '^\s*[^#]\S*\s+swap\s+'
         replace: '# \g<0>'
 
     - name: Install base packages
