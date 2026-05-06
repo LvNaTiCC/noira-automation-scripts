@@ -14,48 +14,50 @@ provider "proxmox" {
   insecure = true
 }
 
-# Mock up signel VM deployment
-resource "proxmox_virtual_environment_vm" "k8s-cp01" {
-  node_name	= "pve01"
-  name		= "k8s-cp01"
+resource "proxmox_virtual_environment_vm" "k8s-cp" {
+  for each = local.k8s_cp_vms
+
+  node_name = each.value.node
+  name = each.keys
 
   clone {
-    vm_id = 103
+    vm_id = var.vm_clone_vmid
   }
 
   cpu {
-    cores = 4
+    cores = var.cp_vm_cores
   }
 
   memory {
-    dedicated = 4096
+    dedicated = var.cp_vm_memory_mb
   }
 
   initialization {
-    datastore_id = "linstor-infra-2x"
+    datastore_id = var.vm_disks_datastore_id
+
     ip_config {
       ipv4 {
-        address = "172.16.10.1/16"
-        gateway = "172.16.0.1"
+        address = "${each.value.ip}/{${var.network_mask}}"
       }
     }
+
     dns {
-        servers = ["1.1.1.1"]
+      servers = var.vm_dns_servers
     }
-    user_account {
+
+    user_account = {
       username = local.default_user_account.username
       keys = local.default_user_account.keys
     }
-
   }
 
   disk {
     interface = "scsi0"
-    datastore_id = "linstor-infra-2x"
-    size = 50
+    datastore_id = var.vm_disks_datastore_id
+    size = var.cp_vm_disk_size_gb
   }
 
   network_device {
-    bridge = "vxvnet10"
+    bridge = var.vm_if_bridge
   }
 }

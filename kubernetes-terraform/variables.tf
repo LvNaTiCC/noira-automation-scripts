@@ -11,14 +11,24 @@ variable "worker_vm_cores" {
   default = 8
 }
 
-variable "worker_vm_memory_mb" {
+variable "worker_vm_cores" {
   type    = number
-  default = 16384
+  default = 8
+}
+
+variable "worker_vm_disk_size_gb" {
+  type    = number
+  default = 300
 }
 
 variable "cp_vm_cores {
   type = number
   default = 4
+}
+
+variable "cp_vm_disk_size_gb {
+  type = number
+  default = 50
 }
 
 variable "cp_vm_memory_mb" {
@@ -36,14 +46,61 @@ variable "default_ssh_user" {
   sensitive = true
 }
 
-variable "vm-disks-datastore-id" {
+variable "vm_disks_datastore_id" {
   type = string
 }
 
-variable "network-gateway" {
+variable "vm_network_gateway" {
   type = string
 }
 
-variable "proxmox-nodes" {
+variable "vm_dns_servers" {
+  type = tuple
+  default = ["1.1.1.1", "8.8.8.8"]
+}
+
+variable "vm_if_bridge" {
+  type = string
+}
+
+variable "proxmox_nodes" {
   type = tuple
 }
+
+variable "vm_clone_vmid" {
+  type = number
+} 
+
+variable "cp_vm_prefix" {
+  type = string
+  default = "k8s-cp"
+}
+
+variable "node_vm_prefix" {
+  type = string
+  default = "k8s-node"
+}
+
+variable "cp_vm_count" {
+  type = number
+  default = 3
+}
+
+variable "node_vm_count" {
+  type = number
+  default = 3
+}
+
+variable "network_mask" {
+  type = string
+  default = "/16"
+}
+
+variable "node_vms_ip_prefix" {
+  type = string
+}
+
+variable "cp_vms_ip_prefix" {
+  type = string
+}
+
