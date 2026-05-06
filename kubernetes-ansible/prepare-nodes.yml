@@ -1,5 +1,5 @@
 ---
-- Generic k8s host setup
+- name: Generic k8s host setup
   hosts: all
   become: true
 
@@ -32,6 +32,6 @@
           net.ipv4.ip_forward=1
       notify: Reload sysctl
 
-    handlers:
-      - name: Reload sysctl
-        command: sysctl --system
+  handlers:
+    - name: Reload sysctl
+      command: sysctl --system
