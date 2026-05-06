@@ -40,6 +40,7 @@ resource "proxmox_virtual_environment_vm" "k8s-cp" {
     ip_config {
       ipv4 {
         address = "${each.value.ip}/${var.network_mask}"
+        var.vm_network_gateway
       }
     }
 
@@ -90,6 +91,7 @@ resource "proxmox_virtual_environment_vm" "k8s-node" {
     ip_config {
       ipv4 {
         address = "${each.value.ip}/${var.network_mask}"
+        gateway = var.vm_network_gateway
       }
     }
 
