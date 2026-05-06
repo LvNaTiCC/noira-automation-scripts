@@ -71,6 +71,10 @@ variable "vm_clone_vmid" {
   type = number
 } 
 
+variable "vm_clone_host" {
+  type = number
+} 
+
 variable "cp_vm_prefix" {
   type = string
   default = "k8s-cp"
