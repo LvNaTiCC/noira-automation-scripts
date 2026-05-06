@@ -55,7 +55,7 @@ variable "vm_network_gateway" {
 }
 
 variable "vm_dns_servers" {
-  type = tuple
+  type = tuple(str)
   default = ["1.1.1.1", "8.8.8.8"]
 }
 
@@ -64,7 +64,7 @@ variable "vm_if_bridge" {
 }
 
 variable "proxmox_nodes" {
-  type = tuple
+  type = tuple(str)
 }
 
 variable "vm_clone_vmid" {
