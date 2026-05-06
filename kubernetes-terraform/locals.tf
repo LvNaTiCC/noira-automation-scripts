@@ -22,12 +22,12 @@ locals {
 
   control_plane_hosts = [
     for name, vm in local.k8s_cp_vms :
-    name + " ansible_host=${vm.ip} ansible_user=${var.default_ssh_user}"
+    "${name} ansible_host=${vm.ip} ansible_user=${var.default_ssh_user}"
   ]
 
   worker_hosts = [
     for name, vm in local.k8s_node_vms :
-    name + " ansible_host=${vm.ip} ansible_user=${var.default_ssh_user}"
+    "${name} ansible_host=${vm.ip} ansible_user=${var.default_ssh_user}"
   ]
 }
 
