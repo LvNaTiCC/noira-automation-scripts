@@ -18,7 +18,7 @@ resource "proxmox_virtual_environment_vm" "k8s-cp" {
   for_each = local.k8s_cp_vms
 
   node_name = each.value.node
-  name = each.keys
+  name = each.key
 
   clone {
     vm_id = var.vm_clone_vmid
