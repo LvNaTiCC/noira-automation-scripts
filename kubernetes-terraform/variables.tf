@@ -6,14 +6,24 @@ variable "proxmox_api_endpoint" {
   type = string
 }
 
-variable "vm_cores" {
+variable "worker_vm_cores" {
   type    = number
-  default = 2
+  default = 8
 }
 
-variable "vm_memory_mb" {
+variable "worker_vm_memory_mb" {
   type    = number
-  default = 2048
+  default = 16384
+}
+
+variable "cp_vm_cores {
+  type = number
+  default = 4
+}
+
+variable "cp_vm_memory_mb" {
+  type = number
+  default = 4096
 }
 
 variable "default_ssh_pubkey" {
@@ -24,4 +34,16 @@ variable "default_ssh_pubkey" {
 variable "default_ssh_user" {
   type      = string
   sensitive = true
+}
+
+variable "vm-disks-datastore-id" {
+  type = string
+}
+
+variable "network-gateway" {
+  type = string
+}
+
+variable "proxmox-nodes" {
+  type = tuple
 }
