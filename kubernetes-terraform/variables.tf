@@ -6,12 +6,12 @@ variable "proxmox_api_endpoint" {
   type = string
 }
 
-variable "worker_vm_cores" {
+variable "node_vm_cores" {
   type    = number
   default = 8
 }
 
-variable "worker_vm_disk_size_gb" {
+variable "node_vm_disk_size_gb" {
   type    = number
   default = 300
 }
@@ -27,6 +27,11 @@ variable "cp_vm_disk_size_gb" {
 }
 
 variable "cp_vm_memory_mb" {
+  type = number
+  default = 4096
+}
+
+variable "node_vm_memory_mb" {
   type = number
   default = 4096
 }
