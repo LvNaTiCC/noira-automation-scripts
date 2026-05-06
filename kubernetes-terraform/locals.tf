@@ -6,7 +6,7 @@ locals {
 
   k8s_cp_vms = {
     for idx in range(var.cp_vm_count) :
-    format("${cp_vm_prefix}-%02d", idx + 1) => {
+    format("${var.cp_vm_prefix}-%02d", idx + 1) => {
       ip = "${var.cp_vms_ip_prefix}.${idx + 1}"
       node = var.proxmox_nodes[idx % length(var.proxmox_nodes)]
     }
