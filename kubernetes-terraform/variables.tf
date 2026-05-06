@@ -47,7 +47,3 @@ variable "network-gateway" {
 variable "proxmox-nodes" {
   type = tuple
 }
-
-variable "proxmox-nodes-push-test" {
-  type = tuple
-}
