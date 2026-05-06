@@ -15,7 +15,7 @@ provider "proxmox" {
 }
 
 resource "proxmox_virtual_environment_vm" "k8s-cp" {
-  for each = local.k8s_cp_vms
+  for_each = local.k8s_cp_vms
 
   node_name = each.value.node
   name = each.keys
