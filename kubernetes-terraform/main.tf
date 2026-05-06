@@ -45,7 +45,7 @@ resource "proxmox_virtual_environment_vm" "k8s-cp" {
       servers = var.vm_dns_servers
     }
 
-    user_account = {
+    user_account {
       username = local.default_user_account.username
       keys = local.default_user_account.keys
     }
