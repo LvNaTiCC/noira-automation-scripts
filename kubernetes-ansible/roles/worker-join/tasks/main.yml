@@ -1,0 +1,10 @@
+# roles/worker-join/tasks/main.yml
+---
+- name: Check if node already joined
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: worker_join_check
+
+- name: Join worker node to cluster
+  command: "{{ hostvars[groups['kube_control_plane'][0]].kubernetes_join_command }}"
+  when: not worker_join_check.stat.exists

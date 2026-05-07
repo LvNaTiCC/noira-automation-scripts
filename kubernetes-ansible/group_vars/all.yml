@@ -1,0 +1,6 @@
+kubernetes_version: "1.30.0-1.1"
+pod_network_cidr: "10.244.0.0/16"
+service_cidr: "10.96.0.0/12"
+kubernetes_repo_apt_key_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key"
+kubernetes_repo_apt_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/"
+container_runtime: "containerd"
