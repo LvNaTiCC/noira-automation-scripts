@@ -1,12 +1,12 @@
 ---
 - name: Install Required Packages
-  apt:
-  - name:
-    - keepalived
-    - haproxy
+  ansible.builtin.apt:
+    name:
+      - keepalived
+      - haproxy
   state: present
 
-- name: Allow binding to non-existent iptables
+- name: Allow binding to non-existent IPs
   ansible.posix.sysctl:
     name: net.ipv4.ip_nonlocal_bind
     value: '1'
@@ -20,9 +20,18 @@
 
 - name: Render Haproxy Config
   ansible.builtin.template:
-    src: templates/keepalived.conf.j2
+    src: templates/haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
 
-- name: Enable and Start Services
-  ansible.builtin.shell: |
-    "systemctl enable keepalived haproxy && systemctl restart keepalived haproxy"
+- name: Enable and Start keepalived
+  ansible.builtin.service:
+    name: keepalived
+    enabled: yes
+    state: restarted
+
+
+- name: Enable and Start keepalived
+  ansible.builtin.service:
+    name: haproxy
+    enabled: yes
+    state: restarted
