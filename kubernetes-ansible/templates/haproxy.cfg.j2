@@ -7,7 +7,7 @@ global
     log 127.0.0.1 local0
 
 frontend k8s_control_plane_frontend
-    bind {{ control_plane_virtual_ip }}:6443
+    bind {{ control_plane_virtual_ip }}:1443
     default_backend k8s_control_plane
 
 backend k8s_control_plane

@@ -9,7 +9,7 @@
     --pod-network-cidr={{ pod_network_cidr }}
     --service-cidr={{ service_cidr }}
     --upload-certs
-    --control-plane-endpoint "k8s-api.noira.local"
+    --control-plane-endpoint={{ k8s_api_endpoint }}
   register: kubeadm_init
   when: not kubeadm_init_check.stat.exists
 
