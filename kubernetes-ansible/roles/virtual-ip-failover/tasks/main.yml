@@ -1,9 +1,0 @@
----
-- name: Install Required Packages
-  apt:
-  - name:
-    - keepalived
-    - haproxy
-  state: present
-
-

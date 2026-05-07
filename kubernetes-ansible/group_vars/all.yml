@@ -4,3 +4,4 @@ service_cidr: "10.96.0.0/12"
 kubernetes_repo_apt_key_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key"
 kubernetes_repo_apt_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/"
 container_runtime: "containerd"
+control_plane_virtual_ip: 172.16.0.100
