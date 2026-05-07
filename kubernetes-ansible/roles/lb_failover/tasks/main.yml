@@ -4,7 +4,7 @@
     name:
       - keepalived
       - haproxy
-  state: present
+    state: present
 
 - name: Allow binding to non-existent IPs
   ansible.posix.sysctl:
