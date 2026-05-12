@@ -17,7 +17,7 @@ table ip nat {
     chain prerouting {
 
 {% for mapping in nft_dnat_mappings %}
-    tcp dport {{ mapping.src_port }} {{ mapping.dest_ip }}:{{ dest_port }}
+    tcp dport {{ mapping.src_port }} {{ mapping.dest_ip }}:{{ mapping.dest_port }}
 {% endfor %}
     }
 
