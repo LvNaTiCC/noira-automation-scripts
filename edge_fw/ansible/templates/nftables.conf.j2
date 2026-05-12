@@ -10,6 +10,12 @@ table ip nat {
         iifname "eth0" tcp dport {{ mapping.src_port }} dnat to {{ mapping.dest_ip }}:{{ mapping.dest_port }}
         {% endfor %}
     }
+
+    chain postrouting {
+        type nat hook postrouting priority srcnat; policy accept;
+
+        ip saddr {{ cidr }} oifname "eth0" masquerade
+    }
 }
 
 table inet filter {
