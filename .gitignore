@@ -49,4 +49,4 @@ terraform.rc
 # Ansible
 inventory.ini
 
-ha-fw.yml
+all.yml
