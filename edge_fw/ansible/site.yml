@@ -1,0 +1,5 @@
+- name: Basic HAProxy + KeepAliveD setup
+  hosts: edge_vms
+  become: true
+  roles:
+    - keepalived

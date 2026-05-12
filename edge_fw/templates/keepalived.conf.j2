@@ -1,0 +1,18 @@
+global_defs {
+    router_id lb-{{ inventory_hostname }}
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id {{ vrouter_id }}
+    priority {{ 200 - groups['edge_vms'].index(inventory_hostname) * 10 }}
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass HampsterFragment
+    }
+    virtual_ipaddress {
+        {{ edge_fw_virtual_ip }}
+    }
+}

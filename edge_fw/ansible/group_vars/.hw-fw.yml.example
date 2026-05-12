@@ -1,0 +1,10 @@
+nft_dnat_mappings:
+- name: SERVER_A
+  src_port: 10022
+  dest_ip: 172.16.149.1
+  dest_port: 443
+
+- name: SERVER_B
+  src_port: 10023
+  dest_ip: 172.16.0.136
+  dest_port: 80

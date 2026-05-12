@@ -1,0 +1,23 @@
+---
+- name: Install Required Packages
+  ansible.builtin.apt:
+    name:
+      - nftables
+    state: present
+    update-cache: true
+
+- name: Disable UFW
+  ansible.builtin.shell: "ufw disable && systemctl stop ufw"
+
+- name: Render NFTables configuration
+  tags: update_nftables
+  ansible.builtin.template:
+    src: templates/keepalived.conf.j2
+    dest: /etc/nftables.conf
+
+- name: Start/Restart NFTables
+  tags: update_nftables
+  ansible.builtin.service:
+    name: nftables
+    enabled: yes
+    state: restarted
