@@ -21,7 +21,7 @@ table inet filter {
 
     iifname "eth0" oifname "eth0" tcp \ 
         ct state new \
-        ct original daddr {{ ansible_host }} \
+        ct original ip daddr {{ ansible_host }} \
         accept
   }
 }
