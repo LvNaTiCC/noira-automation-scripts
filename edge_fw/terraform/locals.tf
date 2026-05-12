@@ -6,8 +6,8 @@ locals {
 
   edge_vms = {
     for idx in range(length(var.proxmox_nodes)) :
-    format("${var.edge_vm_prefix}-%02d", idx + 1) => {
-      ip = "edge-fw-.${idx + 1}"
+    format("$edge-fw-%02d", idx + 1) => {
+      ip = "${var.edge_vms_ip_prefix}.${idx + 1}"
       node = var.proxmox_nodes[idx % length(var.proxmox_nodes)]
     }
   }
