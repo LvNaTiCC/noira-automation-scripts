@@ -3,22 +3,16 @@
 flush ruleset
 
 table ip nat {
-    chains {
-        prerouting {
-            type nat hook prerouting priority -100;
-        }
+    chain prerouting {
+        type nat hook prerouting priority -100;
 
-        postrouting {
-            type nat hook postrouting priority 100;
-        }
+        {% for mapping in nft_dnat_mappings %}
+            tcp dport {{ mapping.src_port }} {{ mapping.dest_ip }}:{{ mapping.dest_port }}
+        {% endfor %}
     }
 
-    # Example: DNAT all tcp/10000-50000 coming to this host to 10.0.10.2
-    chain prerouting {
-
-{% for mapping in nft_dnat_mappings %}
-    tcp dport {{ mapping.src_port }} {{ mapping.dest_ip }}:{{ mapping.dest_port }}
-{% endfor %}
+    chain postrouting {
+        type nat hook postrouting priority 100;
     }
 
     chain postrouting {
