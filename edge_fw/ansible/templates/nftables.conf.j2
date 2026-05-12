@@ -7,16 +7,19 @@ table ip nat {
         type nat hook prerouting priority -100;
 
         {% for mapping in nft_dnat_mappings %}
-        tcp dport {{ mapping.src_port }} dnat to {{ mapping.dest_ip }}:{{ mapping.dest_port }}
+        iifname "eth0" tcp dport {{ mapping.src_port }} dnat to {{ mapping.dest_ip }}:{{ mapping.dest_port }}
         {% endfor %}
     }
+}
 
-    chain postrouting {
-        type nat hook postrouting priority 100;
-    }
+table inet filter {
+  chain forward {
+    type filter hook forward priority 0;
+    policy drop;
 
-    chain postrouting {
-        # Masquerade when going out to internal networks
-        ip saddr {{ network_cidr }} masquerade
-    }
+    ct state { established, related } accept
+
+    iifname "eth0" oifname "eth0" tcp
+        ct state new ct original daddr 172.16.0.200 accept
+  }
 }
