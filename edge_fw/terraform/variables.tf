@@ -63,3 +63,7 @@ variable "network_mask" {
 variable "vm_dns_servers" {
   type = list
 }
+
+variable "edge_vms_ip_prefix" {
+  type = string
+}
