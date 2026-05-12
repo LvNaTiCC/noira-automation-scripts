@@ -9,6 +9,13 @@
 - name: Disable UFW
   ansible.builtin.shell: "ufw disable && systemctl stop ufw"
 
+- name: Allow forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ipv4.ip_forward
+    value: '1'
+    state: present
+    reload: yes
+
 - name: Render NFTables configuration
   tags: update_nftables
   ansible.builtin.template:
