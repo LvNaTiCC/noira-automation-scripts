@@ -5,4 +5,4 @@ kubernetes_repo_apt_key_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/Releas
 kubernetes_repo_apt_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/"
 container_runtime: "containerd"
 control_plane_virtual_ip: "172.16.0.100"
-k8s_api_endpoint: "k8s-api.noira.local:1443"
+k8s_api_endpoint: "k8s-api.noira.lan:1443"

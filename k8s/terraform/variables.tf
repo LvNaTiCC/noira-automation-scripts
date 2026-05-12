@@ -33,7 +33,7 @@ variable "cp_vm_memory_mb" {
 
 variable "node_vm_memory_mb" {
   type = number
-  default = 4096
+  default = 16384
 }
 
 variable "default_ssh_pubkey" {
@@ -52,11 +52,6 @@ variable "vm_disks_datastore_id" {
 
 variable "vm_network_gateway" {
   type = string
-}
-
-variable "vm_dns_servers" {
-  type = list
-  default = ["1.1.1.1", "8.8.8.8"]
 }
 
 variable "vm_if_bridge" {
@@ -108,3 +103,6 @@ variable "cp_vms_ip_prefix" {
   type = string
 }
 
+variable "vm_dns_servers" {
+  type = list
+}

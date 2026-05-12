@@ -5,5 +5,5 @@
   register: cp_join_check
 
 - name: Join control plane node to cluster
-  command: "{{ hostvars[groups['kube_control_plane'][0]].kubernetes_join_command }} --control-plane --apiserver-advertise-address={{ ansible_host }}"
+  command: "{{ hostvars[groups['kube_control_plane'][0]].kubernetes_cp_join_command }} --apiserver-advertise-address={{ ansible_host }}"
   when: not cp_join_check.stat.exists

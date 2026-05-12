@@ -44,6 +44,10 @@
     -n kube-system --timeout=300s
   environment:
     KUBECONFIG: "/home/{{ ansible_user }}/.kube/config"
+  register: cube_ready
+  until: cube_ready.rc == 0
+  retries: 3
+  delay: 5
 
 - name: Generate join command for nodes
   command: kubeadm token create --print-join-command
@@ -53,3 +57,18 @@
 - name: Store join command as fact
   set_fact:
     kubernetes_join_command: "{{ join_command.stdout }}"
+
+- name: Upload control plane certs and get key
+  command: kubeadm init phase upload-certs --upload-certs
+  register: kubeadm_upload_certs
+
+- name: Generate control plane join command
+  command: kubeadm token create --print-join-command
+  register: cp_join_cmd
+
+- name: Set control plane join command fact
+  set_fact:
+    kubernetes_cp_join_command: >-
+      {{ cp_join_cmd.stdout }}
+      --control-plane
+      --certificate-key {{ kubeadm_upload_certs.stdout_lines | last }}

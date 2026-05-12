@@ -58,6 +58,7 @@ resource "proxmox_virtual_environment_vm" "k8s-cp" {
     interface = "scsi0"
     datastore_id = var.vm_disks_datastore_id
     size = var.cp_vm_disk_size_gb
+    discard = "on"
   }
 
   network_device {
@@ -108,7 +109,8 @@ resource "proxmox_virtual_environment_vm" "k8s-node" {
   disk {
     interface = "scsi0"
     datastore_id = var.vm_disks_datastore_id
-    size = var.cp_vm_disk_size_gb
+    size = var.node_vm_disk_size_gb
+    discard = "on"
   }
 
   network_device {
