@@ -14,7 +14,7 @@ table ip nat {
     chain postrouting {
         type nat hook postrouting priority srcnat; policy accept;
 
-        ip saddr {{ cidr }} oifname "eth0" masquerade
+        ip saddr {{ snat_cdr }} oifname "eth0" masquerade
     }
 }
 

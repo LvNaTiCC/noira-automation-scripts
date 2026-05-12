@@ -11,3 +11,4 @@ nft_dnat_mappings:
 
 vrouter_id: "75"
 edge_fw_virtual_ip: "172.16.0.200"
+snat_cdr: 172.16.0.0/16
