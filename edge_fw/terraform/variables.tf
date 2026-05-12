@@ -31,7 +31,7 @@ variable "default_ssh_user" {
   sensitive = true
 }
 
-variable "disks_datastore_id" {
+variable "vm_disks_datastore_id" {
   type = string
 }
 
