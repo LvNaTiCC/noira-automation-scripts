@@ -7,7 +7,7 @@ table ip nat {
         type nat hook prerouting priority -100;
 
         {% for mapping in nft_dnat_mappings %}
-            tcp dport {{ mapping.src_port }} dnat to {{ mapping.dest_ip }}:{{ mapping.dest_port }}
+        tcp dport {{ mapping.src_port }} dnat to {{ mapping.dest_ip }}:{{ mapping.dest_port }}
         {% endfor %}
     }
 

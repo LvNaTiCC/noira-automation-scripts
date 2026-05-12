@@ -11,7 +11,7 @@
 
 - name: Allow forwarding
   ansible.posix.sysctl:
-    name: net.ipv4.ipv4.ip_forward
+    name: net.ipv4.ip_forward
     value: '1'
     state: present
     reload: yes
