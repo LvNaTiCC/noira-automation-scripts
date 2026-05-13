@@ -14,7 +14,7 @@ table ip nat {
     chain postrouting {
         type nat hook postrouting priority srcnat; policy accept;
 
-        ip daddr {{ snat_cdr }} oifname "eth0" masquerade
+        ip daddr {{ snat_cdr }} oifname "eth0" snat to {{ edge_fw_virtual_ip }}
     }
 }
 
