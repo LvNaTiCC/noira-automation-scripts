@@ -1,11 +1,16 @@
 # Reference: https://linbit.com/blog/linstor-setup-proxmox-ve-volumes/
 
 ---
+- name: Add PPA repositories (UBUNTU-SPECIFIC)
+  ansible.builtin.apt_repository:
+    repo: ppa:linbit/linbit-drbd9-stack
+    state: present
+    update_cache: yes
+
 - name: Install headers for the current kernel
   ansible.builtin.apt:
     name: "linux-headers-{{ ansible_kernel }}"
     state: present
-    update_cache: yes
 
 - name: Install drbd, compile module for the current kernel
   ansible.builtin.apt:
@@ -13,16 +18,16 @@
       - drbd-dkms
       - drbd-utils
 
-- name: Unload drbd kernel module
-  community.general.modprobe:
-    name: drbd
-    state: absent
+- name: Unload & Load Kernel module
+  ansible.builtin.shell: "modprobe -r drbd && modprobe drbd"
 
-- name: Load drbd kernel module
-  community.general.modprobe:
-    name: drbd
-    state: present
-    persistent: yes
+- name: Get drbd kernel version
+  ansible.builtin.shell: "modinfo drbd | grep ^version"
+  register: drbd9_mod_ver
+
+- name: Print drbd kernel version
+  debug:
+    msg: "Drbd9 module version: {{ drbd9_mod_ver.stdout }}"
 
 - name: Install linstor satellite
   ansible.builtin.apt:
@@ -38,11 +43,23 @@
 - name: Reboot node
   ansible.builtin.reboot:
     reboot_timeout: 600
+  when: drbd9_mod_ver.stdout.startswith('8.')
 
 - name: Check that drbd9 is present. Fail if drbd8 is loaded
   ansible.builtin.shell: "modinfo drbd | grep ^version"
   register: drbd9_module_ver
   failed_when: drbd9_module_ver.stdout.startswith('8.')
 
+# Assumes ansible user has it's ssh keys on the linstor_controller
 - name: Add nodes on the controller
-  ansible.builtin.shell: 'ssh root@{{ linstor_controller }} "linstor node create {{ inventory_hostname }} {{ ansible_hostname }}"'
+  become: false
+  delegate_to: localhost
+  connection: local
+  ansible.builtin.shell: |
+    ssh {{ linstor_controller_user }}@{{ linstor_controller }} 'linstor node create {{ inventory_hostname }} {{ ansible_default_ipv4.address }}'
+  register: add_result
+  failed_when:
+    - add_result.rc != 0
+    - "'already exists' not in add_result.stdout"
+  changed_when:
+    - add_result.rc == 0

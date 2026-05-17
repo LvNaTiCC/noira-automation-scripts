@@ -1,0 +1,31 @@
+---
+- name: Render storage class values
+  ansible.builtin.template:
+    src: storage_class.yml.j2
+    dest: "/tmp/storage_class_{{ storage_class.name }}.yml"
+
+  loop: "{{ storage_classes }}"
+  loop_control:
+    loop_var: storage_class
+
+- name: Apply storage class
+  ansible.builtin.command:
+    cmd: "kubectl apply -f /tmp/storage_class_{{ storage_class.name }}.yml"
+
+  loop: "{{ storage_classes }}"
+  loop_control:
+    loop_var: storage_class
+
+- name: Check if CSI is already installed
+  ansible.builtin.shell: |
+    kubectl get deploy -n piraeus-datastore linstor-csi-controller \
+      -o jsonpath='{.status.readyReplicas}' 2>/dev/null
+  register: csi_check
+
+- name: Install Linstor CSI
+  ansible.builtin.shell: |
+    kubectl kustomize \
+      https://github.com/piraeusdatastore/linstor-csi/examples/k8s/deploy \
+    | sed "s#LINSTOR_CONTROLLER_URL#http://{{ linstor_controller }}:{{ linstor_controller_port }}#" \
+    | kubectl apply --server-side -f -
+  when: csi_check.rc != 0

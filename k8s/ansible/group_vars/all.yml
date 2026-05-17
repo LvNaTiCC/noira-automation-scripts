@@ -6,15 +6,17 @@ kubernetes_repo_apt_key_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/Releas
 kubernetes_repo_apt_url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/"
 container_runtime: "containerd"
 control_plane_virtual_ip: "172.16.0.100"
+control_plane_kube_user: "manager"
 k8s_api_endpoint: "k8s-api.noira.lan:1443"
 
 # Linstor Based Storage Rollout
-linstor_controller:
-  - 172.16.100.1
+linstor_controller: "172.16.100.1"
+linstor_controller_port: "3370"
+linstor_controller_user: "root"
 storage_classes:
   - name: linstor-k8s-1x
     replicas: 1
-    storage_pool: "lvm-thin"
+    storage_pool: "pve-storage"
   - name: linstor-k8s-2x
     replicas: 2
-    storage_pool: "lvm-thin"
+    storage_pool: "pve-storage"

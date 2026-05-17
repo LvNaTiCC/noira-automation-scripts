@@ -1,5 +1,10 @@
-- name: Configure HAProxy & Keepalived
+- name: Deploy linstor satellite on all nodes
   hosts: kube_node
   become: true
   roles:
-    - linstor_satellite
+    - linstor-satellite
+
+- name: Define storage classes
+  hosts: localhost
+  roles:
+    - linstor-configure
