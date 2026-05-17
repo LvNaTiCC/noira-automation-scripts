@@ -1,0 +1,5 @@
+- name: Configure HAProxy & Keepalived
+  hosts: kube_node
+  become: true
+  roles:
+    - linstor_satellite
