@@ -9,6 +9,7 @@
     number: 1
     part_start: 1GiB
     part_end: 56GiB
+    state: present
 
 - name: Create swap partition
   community.general.parted:
@@ -16,6 +17,7 @@
     number: 2
     part_start: 56GiB
     part_end: 100%
+    state: present
 
 - name: Format partitions
   ansible.builtin.shell: >
