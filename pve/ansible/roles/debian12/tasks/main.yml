@@ -4,6 +4,7 @@
     dd if=/dev/zero of=/dev/md0 bs=1M count=513 status=progress
 
 - name: Create system partition
+  tags: partitioning
   community.general.parted:
     device: /dev/md0
     label: msdos
@@ -13,6 +14,7 @@
     state: present
 
 - name: Create swap partition
+  tags: partitioning
   community.general.parted:
     device: /dev/md0
     number: 2
@@ -21,10 +23,12 @@
     state: present
 
 - name: Format partitions
+  tags: partitioning
   ansible.builtin.shell: >
     mkfs.ext4 /dev/md0p1 && mkswap /dev/md0p2
 
 - name: Mount debootstrap directory
+  tags: partitioning
   ansible.builtin.shell: >
     mount /dev/md0p1 /mnt
 
