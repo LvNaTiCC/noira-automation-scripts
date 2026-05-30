@@ -137,7 +137,7 @@
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure resolv.conf
   ansible.builtin.copy:
-    dest: /mnt/etc/network/interfaces
+    dest: /mnt/etc/network/resolv.conf
     content: |
       nameserver 1.1.1.1
       nameserver 8.8.8.8
