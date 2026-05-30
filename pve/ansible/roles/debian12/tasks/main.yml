@@ -104,8 +104,9 @@
     dest: /mnt/etc/network/interfaces
     content: |
       auto eno1
-      iface eno1 inet manual
-        pre-up ip link set $IFACE up
+      iface eno1 inet static
+        address {{ ansible_host }}
+        netmask 255.255.0.0
 
       auto eno1.4090
       iface eno1.4090 inet manual
@@ -117,18 +118,10 @@
         bridge_ports eno1.4090
         bridge_stp off
         bridge_fd 0
+        bridge_maxwait 0
         address 172.16.1.{{ groups['pve-nodes'].index(inventory_hostname) + 1 }}
         netmask 255.255.0.0
         mtu 1400
-        # ipv4 public subnet
-        up ip addr add {{ ansible_host }}/26 dev eno1.4090
-        up ip rule add from {{ ansible_host }} lookup vswitch
-        up ip rule add to {{ ansible_host }} lookup vswitch
-        up ip route add default via {{ gateway_result.stdout }} dev eno1.4090 table vswitch
-        down ip addr del {{ ansible_host }}/26 dev eno1.4090
-        down ip route del default via {{ gateway_result.stdout }} dev eno1.4090 table vswitch
-        down ip rule del to {{ ansible_host }} lookup vswitch
-        down ip rule del from {{ ansible_host }} lookup vswitch
 
 # MBR-Style (No /boot mount)
 - name: Configure fstab
@@ -137,6 +130,11 @@
     content: |
       {{ root_partition_uuid_result.stdout }} / ext4 defaults 0 1
       {{ swap_partition_uuid_result.stdout }} swap swap defaults 0 0
+
+- name: Add ssh authorized_keys
+  ansible.builtin.copy:
+    dest: /mnt/root/.ssh/authorized_keys
+    content: authorized_keys
 
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure resolv.conf
