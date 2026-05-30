@@ -77,7 +77,7 @@
 
 - name: Create routing table for vSwitch
   ansible.builtin.shell: >
-    echo "1 vswitch" >> /mnt/etc/iproute2/rt_tables
+    echo "1 vswitch" > /mnt/etc/iproute2/rt_tables
 
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure networking
@@ -131,6 +131,6 @@
 
 - name: Install needed packages
   ansible.builtin.shell: >
-    chroot /mnt DEBIAN_FRONTEND=noninteractive apt install -y linux-image-amd64 grub-pc wget lvm2 openssh-server mdadm
+    chroot /mnt apt install -y linux-image-amd64 grub-pc wget lvm2 openssh-server mdadm
 ###
 
