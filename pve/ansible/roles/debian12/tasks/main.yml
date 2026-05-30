@@ -12,8 +12,7 @@
   ansible.posix.mount:
     path: "/mnt"
     state: unmounted
-    failed_when: false
-
+    
 - name: Overwrite system disk with zeroes
   tags: partitioning
   ansible.builtin.shell: > 
@@ -192,6 +191,5 @@
   ansible.posix.mount:
     path: "/mnt"
     state: unmounted
-    failed_when: false
 ###
 
