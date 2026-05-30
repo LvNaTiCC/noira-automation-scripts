@@ -9,7 +9,6 @@
   community.general.parted:
     device: "{{ item }}"
     number: 1
-    flags: [raid_member]
     state: present
     part_start: 1GiB
     part_end: 64GiB
@@ -21,7 +20,6 @@
   community.general.parted:
     device: "{{ item }}"
     number: 2
-    flags: [raid_member]
     state: present
     part_start: 64GiB
     part_end: 60%
@@ -33,7 +31,6 @@
   community.general.parted:
     device: "{{ item }}"
     number: 3
-    flags: [raid_member]
     state: present
     part_start: 60%
     part_end: 80%
@@ -45,7 +42,6 @@
   community.general.parted:
     device: "{{ item }}"
     number: 4
-    flags: [raid_member]
     state: present
     part_start: 80%
     part_end: 100%
