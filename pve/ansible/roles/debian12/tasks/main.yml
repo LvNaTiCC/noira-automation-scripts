@@ -180,6 +180,10 @@
   ansible.builtin.shell: >
     chroot /mnt update-grub
 
+- name: Enable OpenSSH Server
+  ansible.builtin.shell: >
+    chroot /mnt systemctl enable ssh
+
 - name: Change root password
   ansible.builtin.shell: >
     echo "root:changeme" | chroot /mnt chpasswd
