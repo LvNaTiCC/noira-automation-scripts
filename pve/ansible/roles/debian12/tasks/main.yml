@@ -130,7 +130,7 @@
     dest: /mnt/etc/fstab
     content: |
       {{ root_partition_uuid_result.stdout }} / ext4 defaults 0 1
-      {{ swap_partition_uuid_result }} swap swap defaults 0 0
+      {{ swap_partition_uuid_result.stdout }} swap swap defaults 0 0
 
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure resolv.conf
