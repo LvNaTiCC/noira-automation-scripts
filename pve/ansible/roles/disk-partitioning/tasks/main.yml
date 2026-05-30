@@ -1,10 +1,14 @@
+- name: Stop all arrays
+  tags: fresh-start
+  ansible.builtin.shell: mdadm --stop --scan
+
 - name: Overwrite disks with zeroes
   tags: fresh-start
   ansible.builtin.shell: dd if=/dev/zero of={{ item }} bs=1M count=256 status=progress
   loop:
     - /dev/nvme0n1
     - /dev/nvme1n1
-
+    
 - name: Create system partitions
   community.general.parted:
     device: "{{ item }}"
