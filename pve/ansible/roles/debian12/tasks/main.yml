@@ -105,6 +105,7 @@
     content: |
       auto eth0
       iface eth0 inet manual
+        pre-up ip link set $IFACE up
 
       auto eth0.4090
       iface eth0.4090 inet manual
@@ -166,7 +167,7 @@
 
 - name: Install needed packages
   ansible.builtin.shell: >
-    chroot /mnt apt install -y linux-image-amd64 grub-pc wget lvm2 openssh-server mdadm bridge-utils
+    chroot /mnt apt install -y linux-image-amd64 grub-pc wget lvm2 openssh-server mdadm bridge-utils vlan
 
 - name: Save mdadm config into newroot
   ansible.builtin.shell: >
