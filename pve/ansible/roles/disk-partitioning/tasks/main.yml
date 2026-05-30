@@ -1,6 +1,6 @@
 - name: Overwrite disks with zeroes
   tags: fresh-start
-  ansible.builtin.shell: dd if=/dev/zero of="{{ item }}" bs=1M count=256 status=progress
+  ansible.builtin.shell: dd if=/dev/zero of={{ item }} bs=1M count=256 status=progress
   loop:
     - /dev/nvme0
     - /dev/nvme1
