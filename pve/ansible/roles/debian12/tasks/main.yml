@@ -134,7 +134,7 @@
 - name: Add ssh authorized_keys
   ansible.builtin.copy:
     dest: /mnt/root/.ssh/authorized_keys
-    content: authorized_keys
+    content: "{{ authorized_keys }}"
 
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure resolv.conf
