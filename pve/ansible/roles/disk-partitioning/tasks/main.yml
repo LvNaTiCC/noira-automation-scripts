@@ -2,8 +2,8 @@
   tags: fresh-start
   ansible.builtin.shell: dd if=/dev/zero of={{ item }} bs=1M count=256 status=progress
   loop:
-    - /dev/nvme0
-    - /dev/nvme1
+    - /dev/nvme0n1
+    - /dev/nvme1n1
 
 - name: Create system partitions
   community.general.parted:
@@ -14,8 +14,8 @@
     part_start: 1GiB
     part_end: 64GiB
   loop:
-    - /dev/nvme0
-    - /dev/nvme1
+    - /dev/nvme0n1
+    - /dev/nvme1n1
 
 - name: Create local-lvm partitions
   community.general.parted:
@@ -26,8 +26,8 @@
     part_start: 64GiB
     part_end: 60%
   loop:
-    - /dev/nvme0
-    - /dev/nvme1
+    - /dev/nvme0n1
+    - /dev/nvme1n1
 
 - name: Create longhorn partitions
   community.general.parted:
@@ -38,8 +38,8 @@
     part_start: 60%
     part_end: 80%
   loop:
-    - /dev/nvme0
-    - /dev/nvme1
+    - /dev/nvme0n1
+    - /dev/nvme1n1
 
 - name: Create linstor partitions
   community.general.parted:
@@ -50,5 +50,5 @@
     part_start: 80%
     part_end: 100%
   loop:
-    - /dev/nvme0
-    - /dev/nvme1
+    - /dev/nvme0n1
+    - /dev/nvme1n1
