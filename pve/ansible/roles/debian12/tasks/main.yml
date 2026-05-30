@@ -44,6 +44,17 @@
   tags: partitioning
   ansible.builtin.shell: >
     mkfs.ext4 /dev/md0p1 && mkswap /dev/md0p2
+
+- name: Get root partition UUID
+  ansible.builtin.shell: >
+    blkid /dev/md0p1 | awk '{print $2; exit}'
+  register: root_partition_uuid_result
+
+- name: Get swap partition UUID
+  ansible.builtin.shell: >
+    blkid /dev/md0p2 | awk '{print $2; exit}'
+  register: swap_partition_uuid_result
+
 ###
 # Debian 12 Install
 ###
@@ -74,27 +85,18 @@
       deb http://deb.debian.org/debian bookworm-updates main non-free-firmware
       deb-src http://deb.debian.org/debian bookworm-updates main non-free-firmware
 
-- name: Create routing table for vSwitch
-  ansible.builtin.lineinfile:
-    path: /mnt/etc/iproute2/rt_tables
-    line: "1 vswitch"
-    state: present
-
 - name: Get default gateway
   ansible.builtin.shell: >
     ip route show default | awk '/default/ {print $3; exit}'
   register: gateway_result
   changed_when: false
 
-- name: Get root partition UUID
-  ansible.builtin.shell: >
-    blkid /dev/md0p1 | awk '{print $2; exit}'
-  register: root_partition_uuid_result
-
-- name: Get swap partition UUID
-  ansible.builtin.shell: >
-    blkid /dev/md0p2 | awk '{print $2; exit}'
-  register: swap_partition_uuid_result
+# According to https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
+- name: Create routing table for vSwitch
+  ansible.builtin.lineinfile:
+    path: /mnt/etc/iproute2/rt_tables
+    line: "1 vswitch"
+    state: present
 
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure networking
@@ -171,7 +173,7 @@
   ansible.builtin.shell: >
     chroot /mnt grub-install /dev/nvme0n1 && chroot /mnt grub-install /dev/nvme1n1
 
-- name: Generate grub ocnfiguration
+- name: Generate grub configuration
   ansible.builtin.shell: >
     chroot /mnt update-grub
 
@@ -180,14 +182,14 @@
     echo "root:changeme" | chroot /mnt chpasswd
 
 - name: Clean up binds
-  tags: partitioning
+  tags: postinstall_cleanup
   ansible.builtin.shell: >
     umount -l /mnt/{{ item }}
   loop: [proc, sys, dev, dev/pts, run]
   failed_when: false
 
 - name: Clean up root mount
-  tags: partitioning
+  tags: postinstall_cleanup
   ansible.posix.mount:
     path: "/mnt"
     state: unmounted
