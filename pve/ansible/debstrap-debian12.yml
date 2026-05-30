@@ -1,4 +1,4 @@
-- name: Prepare md arrays
+- name: Prepare Debian12 OS with deboostrap
   hosts: pve-nodes
   roles: 
     - debian12
