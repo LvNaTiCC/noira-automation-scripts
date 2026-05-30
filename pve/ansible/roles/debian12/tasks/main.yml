@@ -1,4 +1,5 @@
 - name: Overwrite system disk with zeroes
+  tags: partitioning
   ansible.builtin.shell: > 
     dd if=/dev/zero of=/dev/md0 bs=1M count=513 status=progress
 
@@ -29,6 +30,7 @@
 
 # Courtesy of https://quantum5.ca/2024/08/12/installing-debian-proxmox-by-hand-from-rescue-environment/
 - name: Run debootstrap
+  tags: debootstrap
   ansible.builtin.shell: >
     debootstrap --arch amd64 bookworm /mnt http://deb.debian.org/debian
 
@@ -54,14 +56,12 @@
 
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure networking
-  vars:
-   index: "{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}"
   ansible.builtin.copy:
     dest: /mnt/etc/network/interfaces
     content: |
       auto enp0s31f6.4090
       iface enp0s31f6.4090 inet static
-        address 172.16.1.{{ index }}
+        address 172.16.1."{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}"
         netmask 255.255.0.0
         vlan-draw-device enp0s31f6
         mtu 1400
