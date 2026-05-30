@@ -12,7 +12,7 @@
   ansible.posix.mount:
     path: "/mnt"
     state: unmounted
-    
+
 - name: Overwrite system disk with zeroes
   tags: partitioning
   ansible.builtin.shell: > 
@@ -165,7 +165,7 @@
 
 - name: Save mdadm config into newroot
   ansible.builtin.shell: >
-    sudo mdadm --detail --scan | sudo tee -a /mnt/etc/mdadm/mdadm.conf
+    mdadm --detail --scan | tee -a /mnt/etc/mdadm/mdadm.conf
 
 - name: Install grub to boot devices
   ansible.builtin.shell: >
