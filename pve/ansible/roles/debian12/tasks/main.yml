@@ -1,3 +1,17 @@
+- name: Clean up binds
+  tags: partitioning
+  ansible.posix.mount:
+    path: "/mnt/{{ item }}"
+    src: "/{{ item }}"
+    state: unmounted
+  loop: [proc, sys, dev, dev/pts, run]
+
+- name: Clean up root mount
+  tags: partitioning
+  ansible.posix.mount:
+    path: "/mnt"
+    state: unmounted
+
 - name: Overwrite system disk with zeroes
   tags: partitioning
   ansible.builtin.shell: > 
