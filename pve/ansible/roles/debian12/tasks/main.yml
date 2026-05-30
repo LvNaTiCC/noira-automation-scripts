@@ -140,10 +140,20 @@
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Configure resolv.conf
   ansible.builtin.copy:
-    dest: /mnt/etc/network/resolv.conf
+    dest: /mnt/etc/resolv.conf
     content: |
       nameserver 1.1.1.1
       nameserver 8.8.8.8
+
+- name: Configure /etc/hosts
+  ansible.builtin.copy:
+    dest: /mnt/etc/hosts
+    content: |
+      127.0.0.1       localhost
+      ::1             localhost ip6-localhost ip6-loopback
+      ff02::1         ip6-allnodes
+      ff02::2         ip6-allrouters
+      172.16.1.{{ groups['pve-nodes'].index(inventory_hostname) + 1 }}      {{ inventory_hostname }}
 ###
 # Debian 12 Postinstall
 ###
