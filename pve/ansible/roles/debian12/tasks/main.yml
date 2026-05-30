@@ -103,26 +103,29 @@
   ansible.builtin.copy:
     dest: /mnt/etc/network/interfaces
     content: |
-      auto enp0s31f6.4090
-      iface enp0s31f6.4090 inet manual
-        vlan-raw-device enp0s31f6
+      auto eth0
+      iface enp0s31f6 inet manual
+
+      auto eth0.4090
+      iface eth0.4090 inet manual
+        vlan-raw-device eth0
         mtu 1400
       
       auto br0
       iface br0 inet static
-        bridge_ports enp0s31f6.4090
+        bridge_ports eth0.4090
         bridge_stp off
         bridge_fd 0
         address 172.16.1.{{ groups['pve-nodes'].index(inventory_hostname) + 1 }}
         netmask 255.255.0.0
         mtu 1400
         # ipv4 public subnet
-        up ip addr add {{ ansible_host }}/26 dev enp0s31f6.4090
+        up ip addr add {{ ansible_host }}/26 dev eth0.4090
         up ip rule add from {{ ansible_host }} lookup vswitch
         up ip rule add to {{ ansible_host }} lookup vswitch
-        up ip route add default via {{ gateway_result.stdout }} dev enp0s31f6.4090 table vswitch
-        down ip addr del {{ ansible_host }}/26 dev enp0s31f6.4090
-        down ip route del default via {{ gateway_result.stdout }} dev enp0s31f6.4090 table vswitch
+        up ip route add default via {{ gateway_result.stdout }} dev eth0.4090 table vswitch
+        down ip addr del {{ ansible_host }}/26 dev eth0.4090
+        down ip route del default via {{ gateway_result.stdout }} dev eth0.4090 table vswitch
         down ip rule del to {{ ansible_host }} lookup vswitch
         down ip rule del from {{ ansible_host }} lookup vswitch
 
@@ -163,7 +166,7 @@
 
 - name: Install needed packages
   ansible.builtin.shell: >
-    chroot /mnt apt install -y linux-image-amd64 grub-pc wget lvm2 openssh-server mdadm
+    chroot /mnt apt install -y linux-image-amd64 grub-pc wget lvm2 openssh-server mdadm bridge-utils
 
 - name: Save mdadm config into newroot
   ansible.builtin.shell: >
