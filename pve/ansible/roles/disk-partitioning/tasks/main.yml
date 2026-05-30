@@ -48,3 +48,19 @@
   loop:
     - /dev/nvme0n1
     - /dev/nvme1n1
+
+- name: Create system software raid device
+  ansible.builtin.shell: >
+    mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme0n1p1 /dev/nvme1n1p1
+
+- name: Create local-lvm software raid device
+  ansible.builtin.shell: >
+    mdadm --create /dev/md1 --level=0 --raid-devices=2 /dev/nvme0n1p2 /dev/nvme1n1p2
+
+- name: Create longhorn software raid device
+  ansible.builtin.shell: >
+    mdadm --create /dev/md2 --level=0 --raid-devices=2 /dev/nvme0n1p3 /dev/nvme1n1p3
+
+- name: Create linstor software raid device
+  ansible.builtin.shell: >
+    mdadm --create /dev/md3 --level=0 --raid-devices=2 /dev/nvme0n1p4 /dev/nvme1n1p4
