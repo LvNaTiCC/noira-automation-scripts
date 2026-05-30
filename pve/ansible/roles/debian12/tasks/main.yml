@@ -214,5 +214,9 @@
   ansible.posix.mount:
     path: "/mnt"
     state: unmounted
+
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 3600
 ###
 
