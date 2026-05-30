@@ -33,7 +33,7 @@
     number: 3
     state: present
     part_start: 60%
-    part_end: 80%
+    part_end: 85%
   loop:
     - /dev/nvme0n1
     - /dev/nvme1n1
@@ -43,7 +43,7 @@
     device: "{{ item }}"
     number: 4
     state: present
-    part_start: 80%
+    part_start: 85%
     part_end: 100%
   loop:
     - /dev/nvme0n1
