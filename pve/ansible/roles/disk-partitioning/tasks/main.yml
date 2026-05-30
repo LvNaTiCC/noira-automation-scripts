@@ -1,0 +1,54 @@
+- name: Overwrite disks with zeroes
+  tags: fresh-start
+  ansible.builtin.shell: dd if=/dev/zero of="{{ item }}" bs=1M count=256 status=progress
+  loop:
+    - /dev/nvme0
+    - /dev/nvme1
+
+- name: Create system partitions
+  community.general.parted:
+    device: "{{ item }}"
+    number: 1
+    flags: [raid_member]
+    state: present
+    part_start: 1GiB
+    part_end: 64GiB
+  loop:
+    - /dev/nvme0
+    - /dev/nvme1
+
+- name: Create local-lvm partitions
+  community.general.parted:
+    device: "{{ item }}"
+    number: 2
+    flags: [raid_member]
+    state: present
+    part_start: 64GiB
+    part_end: 60%
+  loop:
+    - /dev/nvme0
+    - /dev/nvme1
+
+- name: Create longhorn partitions
+  community.general.parted:
+    device: "{{ item }}"
+    number: 3
+    flags: [raid_member]
+    state: present
+    part_start: 60%
+    part_end: 80%
+  loop:
+    - /dev/nvme0
+    - /dev/nvme1
+
+- name: Create linstor partitions
+  community.general.parted:
+    device: "{{ item }}"
+    number: 4
+    flags: [raid_member]
+    state: present
+    part_start: 80%
+    part_end: 100%
+  loop:
+    - /dev/nvme0
+    - /dev/nvme1
