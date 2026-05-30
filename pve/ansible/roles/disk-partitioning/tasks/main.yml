@@ -13,6 +13,7 @@
   community.general.parted:
     device: "{{ item }}"
     number: 1
+    label: msdos
     state: present
     part_start: 1GiB
     part_end: 64GiB

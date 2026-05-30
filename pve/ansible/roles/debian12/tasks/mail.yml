@@ -1,0 +1,10 @@
+- name: Create debootstrap directory
+  ansible.builtin.file:
+    path: "/mnt/chr"
+    state: directory
+    mode: '0755'
+
+- name: Run debootstrap
+  ansible.builtin.shell: >
+    debootstrap bookworm http://debian.org
+    
