@@ -2,10 +2,8 @@
 ###
 - name: Clean up binds
   tags: partitioning
-  ansible.posix.mount:
-    path: "/mnt/{{ item }}"
-    src: "/{{ item }}"
-    state: unmounted
+  ansible.builtin.shell: >
+    umount -l /mnt/{{ item }}
   loop: [proc, sys, dev, dev/pts, run]
 
 - name: Clean up root mount
@@ -180,19 +178,15 @@
   ansible.builtin.shell: >
     echo "root:changeme" | chroot /mnt chpasswd
 
-- name: Unbind virtual filesystems
-  ansible.posix.mount:
-    path: "/mnt/{{ item }}"
-    src: "/{{ item }}"
-    fstype: bind
-    opts: bind
-    state: unmounted
+- name: Clean up binds
+  tags: partitioning
+  ansible.builtin.shell: >
+    umount -l /mnt/{{ item }}
   loop: [proc, sys, dev, dev/pts, run]
 
-- name: Clean up root mount
+- name: Clean up binds
   tags: partitioning
-  ansible.posix.mount:
-    path: "/mnt"
-    state: unmounted
+  ansible.builtin.shell: >
+    umount -l /mnt/{{ item }}
 ###
 
