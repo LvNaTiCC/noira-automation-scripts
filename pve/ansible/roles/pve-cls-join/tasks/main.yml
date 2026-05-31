@@ -4,7 +4,6 @@
     state: present
 
 - name: Create a Proxmox VE Cluster
-  delegate_to: pve01.noira.moe
   community.proxmox.proxmox_cluster:
     state: present
     api_host: pve01.noira.moe
