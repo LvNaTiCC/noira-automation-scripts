@@ -9,5 +9,9 @@
       tags: pve9_deployment
     - role: zfs-vm-storage # UNTESTED
       tags: zfs-setup
-    - role: pve-cls-join # TODO
+
+- name: Cluster setup
+  hosts: pve-nodes[0]
+  roles:
+    - role: pve-cls-join
       tags: cluster-setup
