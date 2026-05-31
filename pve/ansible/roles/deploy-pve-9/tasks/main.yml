@@ -7,7 +7,7 @@
 
 - name: Configure hostname
   ansible.builtin.shell: >
-    chroot /mnt hostnamectl set-hostname {{ inventory_hostname }}
+    hostnamectl set-hostname {{ inventory_hostname }}
 
 - name: Prerequisite for debian 13 specific ansible module working
   ansible.builtin.apt:
