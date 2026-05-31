@@ -35,11 +35,6 @@
   ansible.builtin.shell: |
     wget https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg -O /usr/share/keyrings/proxmox-archive-keyring.gpg
 
-- name: Hold grub
-  ansible.builtin.dpkg_selections:
-    name: grub-pc
-    selection: hold
-
 - name: Run apt update and apt upgrade
   ansible.builtin.apt:
     update_cache: true
