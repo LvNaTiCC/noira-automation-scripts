@@ -1,8 +1,6 @@
 127.0.0.1       localhost
-{% set index = 1 %}
 {% for host_name in groups['pve-nodes'] %}
-172.16.1.{{ index }} {{ host_name }} {{ host_name.split('.')[0] }}
-{% set index = index + 1 %}
+172.16.1.{{ loop.index }} {{ host_name }} {{ host_name.split('.')[0] }}
 {% endfor %}
 
 # The following lines are desirable for IPv6 capable hosts
