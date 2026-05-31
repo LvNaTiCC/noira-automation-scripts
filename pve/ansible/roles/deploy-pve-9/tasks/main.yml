@@ -31,7 +31,7 @@
     question: grub-pc/install_devices
     value: 
       - /dev/nvme0n1
-      - /dev/nvme0n2
+      - /dev/nvme1n1
     vtype: multiselect
 
 - name: Install grub-pc non-interactively
