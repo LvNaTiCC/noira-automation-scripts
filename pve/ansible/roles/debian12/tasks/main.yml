@@ -65,12 +65,12 @@
 - name: Mount debootstrap directory
   tags: partitioning
   ansible.builtin.shell: >
-    mount -t btfrs /dev/md0p1 /mnt
+    mount -t btrfs /dev/md0p1 /mnt
 
-- name: Create BTFRS Subvolumes
+- name: Create BTRFS Subvolumes
   tags: partitioning
   ansible.builtin.shell: >
-    btfrs subvolume create /mnt/@
+    btrfs subvolume create /mnt/@
 
 - name: Remount root partiton
   tags: partitioning
