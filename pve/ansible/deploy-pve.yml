@@ -1,5 +1,9 @@
 - name: Prepare disks and OS for PVE cluster deployment
   hosts: pve-nodes
   roles: 
-    - disk-partitioning
-    - debian-pve-base
+    - role: disk-partitioning
+      tags: rescue_preparation,partitioning
+    - role: debian-pve-base
+      tags: rescue_preparation,debootstrap
+    - role: deploy-pve-9
+      tags: pve9_deployment
