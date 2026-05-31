@@ -5,10 +5,6 @@
     src: templates/hosts.j2
     dest: /etc/hosts
 
-- name: Configure hostname
-  ansible.builtin.shell: >
-    hostnamectl set-hostname {{ inventory_hostname }}
-
 - name: Prerequisite for debian 13 specific ansible module working
   ansible.builtin.apt:
     state: present
@@ -74,6 +70,10 @@
   environment:
     DEBIAN_FRONTEND: noninteractive
     APT_LISTCHANGES_FRONTEND: none
+
+- name: Configure hostname
+  ansible.builtin.shell: >
+    hostnamectl set-hostname {{ inventory_hostname }}
 
 - name: Reboot
   ansible.builtin.reboot:
