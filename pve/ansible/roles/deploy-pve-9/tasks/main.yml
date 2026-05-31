@@ -75,6 +75,16 @@
   ansible.builtin.shell: >
     hostnamectl set-hostname {{ inventory_hostname }}
 
+- name: Make sure PVE enterprise repo isn't present
+  ansible.builtin.deb822_repository:
+    name: pve-enterprise
+    types: [deb]
+    uris: https://enterprise.proxmox.com/debian/pve
+    suites: [trixie]
+    components: [pve-enterprise]
+    signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
+    state: absent
+
 - name: Reboot
   ansible.builtin.reboot:
     reboot_timeout: 3600
