@@ -77,27 +77,26 @@
   ansible.builtin.shell: >
     umount -l /mnt && mount -o defaults,compress=zstd /dev/md0p1 /mnt
 
-# Courtesy of https://quantum5.ca/2024/08/12/installing-debian-proxmox-by-hand-from-rescue-environment/
 - name: Run debootstrap
   tags: debootstrap
   ansible.builtin.shell: >
-    debootstrap --arch amd64 bookworm /mnt http://deb.debian.org/debian
+    debootstrap --arch amd64 trixie /mnt http://deb.debian.org/debian
 
-# Courtesy of https://quantum5.ca/2024/08/12/installing-debian-proxmox-by-hand-from-rescue-environment/
+# https://manpages.debian.org/trixie/apt/sources.list.5.en.html
 - name: Add repositories
   ansible.builtin.copy:
-    dest: /mnt/etc/apt/sources.list
+    dest: /mnt/etc/apt/sources.list.d/debian.sources
     content: |
-      deb http://deb.debian.org/debian bookworm main non-free-firmware
-      deb-src http://deb.debian.org/debian bookworm main non-free-firmware
-
-      deb http://security.debian.org/debian-security bookworm-security main non-free-firmware
-      deb-src http://security.debian.org/debian-security bookworm-security main non-free-firmware
-
-      # bookworm-updates, to get updates before a point release is made;
-      # see https://www.debian.org/doc/manuals/debian-reference/ch02.en.html#_updates_and_backports
-      deb http://deb.debian.org/debian bookworm-updates main non-free-firmware
-      deb-src http://deb.debian.org/debian bookworm-updates main non-free-firmware
+      Types: deb
+      URIs: http://deb.debian.org/debian
+      Suites: trixie trixie-updates
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+      Types: deb
+      URIs: http://deb.debian.org/debian-security
+      Suites: trixie-security
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 - name: Get default gateway
   ansible.builtin.shell: >
@@ -113,6 +112,7 @@
     state: present
 
 # With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
+# Public ip is on untagged interface
 - name: Configure networking
   ansible.builtin.copy:
     dest: /mnt/etc/network/interfaces
