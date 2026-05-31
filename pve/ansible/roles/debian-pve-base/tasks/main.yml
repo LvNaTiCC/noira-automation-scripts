@@ -104,7 +104,18 @@
   register: gateway_result
   changed_when: false
 
+# Trixie Workaround (No configuration in chroot)
+- name: Ensure iproute2 configuration folder exists
+  ansible.builtin.file:
+    path: /mnt/etc/iproute2
+    state: directory
+    mode: '0755'
 
+# Trixie Workaround (No configuration in chroot)
+- name: Ensure iproute2 configuration rt_table file exists
+  ansible.builtin.file:
+    path: /mnt/etc/iproute2/rt_tables
+    state: touch
 
 # According to https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Create routing table for vSwitch
