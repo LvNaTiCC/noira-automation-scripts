@@ -72,7 +72,7 @@
 
 - name: Wipefs from all partitions just in case
   ansible.builtin.shell: >
-    wipefs /dev/nvme0n1p1 /dev/nvme1n1p1 /dev/nvme0n1p2 /dev/nvme1n1p2 /dev/nvme0n1p3 /dev/nvme1n1p3 /dev/nvme0n1p4 /dev/nvme1n1p4
+    wipefs --all /dev/nvme0n1p1 /dev/nvme1n1p1 /dev/nvme0n1p2 /dev/nvme1n1p2 /dev/nvme0n1p3 /dev/nvme1n1p3 /dev/nvme0n1p4 /dev/nvme1n1p4
 
 - name: Create md array for linux base system
   ansible.builtin.shell: >
