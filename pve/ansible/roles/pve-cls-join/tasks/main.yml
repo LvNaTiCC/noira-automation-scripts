@@ -21,6 +21,10 @@
     validate_certs: false
   register: cluster_info
 
+- name: Set master fingeprint fact
+  ansible.builtin.set_fact:
+    master_fingerprint: "{{ cluster_info.cluster_join.nodelist | selectattr('pve_addr', 'equalto', '172.16.1.1') | map(attribute='pve_fp') | first }}"
+
 - name: Join a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
     state: present
@@ -28,7 +32,7 @@
     api_user: root@pam
     api_password: changeme
     master_ip: 172.16.1.1
-    fingerprint: "{{ cluster_info.cluster_join.nodelist[0].pve_fp }}"
+    fingerprint: "{{ master_fingerprint }}"
   loop:
     - pve02.noira.moe
     - pve03.noira.moe
