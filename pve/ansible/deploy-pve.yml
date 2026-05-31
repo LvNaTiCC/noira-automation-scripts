@@ -7,3 +7,7 @@
       tags: rescue_preparation,debootstrap
     - role: deploy-pve-9
       tags: pve9_deployment
+    - role: zfs-vm-storage # UNTESTED
+      tags: zfs-setup
+    - role: pve-cls-join # TODO
+      tags: cluster-setup

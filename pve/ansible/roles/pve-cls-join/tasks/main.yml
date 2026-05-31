@@ -1,0 +1,29 @@
+- name: Create a Proxmox VE Cluster
+  community.proxmox.proxmox_cluster:
+    state: present
+    api_host: pve01.noira.moe
+    api_user: root@pam
+    api_password: changeme
+    validate_certs: false
+    link0: 
+    cluster_name: "noira-pve-cls"
+
+- name: Get cluster join information
+  community.proxmox.proxmox_cluster_join_info:
+    api_host: 172.16.1.1
+    api_user: root@pam
+    api_password: changeme
+    validate_certs: false
+  register: cluster_info
+
+- name: Join a Proxmox VE Cluster
+  community.proxmox.proxmox_cluster:
+    state: present
+    api_host: {{ item }}
+    api_user: root@pam
+    api_password: changeme
+    master_ip: 172.16.1.1
+    fingerprint: "{{ cluster_info.cluster_join[0].nodelist[0].pve_fp }}"
+  loop:
+    - pve02.noira.moe
+    - pve03.noira.moe
