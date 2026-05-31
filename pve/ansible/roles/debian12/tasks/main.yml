@@ -40,6 +40,10 @@
     part_end: 100%
     state: present
 
+- name: Installl btrfs-progs
+  ansible.builtin.shell: >
+    apt install -y btrfs-progs
+
 - name: Format partitions
   tags: partitioning
   ansible.builtin.shell: >
