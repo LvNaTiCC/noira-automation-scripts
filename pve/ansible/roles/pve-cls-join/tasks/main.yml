@@ -1,4 +1,11 @@
+- name: Ensure proxmoxer is installed
+  delegate_to: pve01.noira.moe
+  ansible.builtin.apt:
+    name: python3-proxmoxer
+    state: present
+
 - name: Create a Proxmox VE Cluster
+  delegate_to: pve01.noira.moe
   community.proxmox.proxmox_cluster:
     state: present
     api_host: pve01.noira.moe
@@ -9,6 +16,7 @@
     cluster_name: "noira-pve-cls"
 
 - name: Get cluster join information
+  delegate_to: pve01.noira.moe
   community.proxmox.proxmox_cluster_join_info:
     api_host: 172.16.1.1
     api_user: root@pam
@@ -17,6 +25,7 @@
   register: cluster_info
 
 - name: Join a Proxmox VE Cluster
+  delegate_to: pve01.noira.moe
   community.proxmox.proxmox_cluster:
     state: present
     api_host: "{{ item }}"
