@@ -29,7 +29,7 @@
     api_user: root@pam
     api_password: changeme
     master_ip: 172.16.1.1
-    fingerprint: "{{ cluster_info.cluster_join[0].nodelist[0].pve_fp }}"
+    fingerprint: "{{ cluster_info.cluster_join.nodelist[0].pve_fp }}"
   loop:
     - pve02.noira.moe
     - pve03.noira.moe
