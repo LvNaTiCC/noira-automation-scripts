@@ -193,10 +193,6 @@
     state: mounted
   loop: [proc, sys, dev, dev/pts, run]
 
-- name: Configure hostname
-  ansible.builtin.shell: >
-    chroot /mnt hostnamectl set-hostname {{ inventory_hostname }}
-
 - name: Update package index inside chroot
   ansible.builtin.shell: >
     chroot /mnt apt update
