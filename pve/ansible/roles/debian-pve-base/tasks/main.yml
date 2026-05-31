@@ -211,7 +211,7 @@
 
 - name: Save mdadm config into newroot
   ansible.builtin.shell: >
-    mdadm --detail --scan | tee -a /mnt/etc/mdadm/mdadm.conf
+    mdadm --detail --scan | tee /mnt/etc/mdadm/mdadm.conf
 
 - name: Prevent any further mdadm configuration modification during system updates
   ansible.builtin.shell: >
