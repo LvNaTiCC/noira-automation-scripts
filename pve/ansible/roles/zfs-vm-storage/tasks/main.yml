@@ -1,0 +1,4 @@
+- name: Create basic non-redundant pool for vm disks
+  ansible.builtin.shell: |
+    zpool create local-zfs-pool /dev/nvme0n1p2 /dev/nvme1n1p2 ashift=12 recordsize=32K -O atime=off sync=disabled \
+    pvesm add zfspool local-zvs-storage -pool local-zfs-pool
