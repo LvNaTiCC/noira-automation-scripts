@@ -19,7 +19,7 @@
 - name: Join a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
     state: present
-    api_host: {{ item }}
+    api_host: "{{ item }}"
     api_user: root@pam
     api_password: changeme
     master_ip: 172.16.1.1
