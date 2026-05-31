@@ -51,7 +51,7 @@
 
 - name: Get root partition UUID
   ansible.builtin.shell: >
-    blkid /dev/md0p1 | awk '{print $2; exit}'
+    blkid /dev/md0p1 | awk '{print $3; exit}'
   register: root_partition_uuid_result
 
 - name: Get swap partition UUID
