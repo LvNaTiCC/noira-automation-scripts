@@ -5,6 +5,11 @@
     src: templates/hosts.j2
     dest: /etc/hosts
 
+- name: Prerequisite for debian 13 specific ansible module working
+  ansible.builtin.apt:
+    state: present
+    name: python3-debian
+
 - name: Add PVE repository for Debian Trixie
   ansible.builtin.deb822_repository:
     name: PVE_Trixie_Repo
