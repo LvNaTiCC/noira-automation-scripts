@@ -169,7 +169,7 @@
       ff02::2         ip6-allrouters
       172.16.1.{{ groups['pve-nodes'].index(inventory_hostname) + 1 }}      {{ inventory_hostname }}
 ###
-# Debian 12 Postinstall
+# Postinstall
 ###
 - name: Bind virtual filesystems
   ansible.posix.mount:

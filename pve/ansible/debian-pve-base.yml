@@ -1,4 +1,4 @@
 - name: Prepare Debian12 OS with deboostrap
   hosts: pve-nodes
   roles: 
-    - debian12
+    - debian-pve-base

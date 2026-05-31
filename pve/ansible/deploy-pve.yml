@@ -2,4 +2,4 @@
   hosts: pve-nodes
   roles: 
     - disk-partitioning
-    - debian12
+    - debian-pve-base

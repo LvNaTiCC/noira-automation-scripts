@@ -1,5 +1,4 @@
 - name: Stop all arrays
-  tags: fresh-start
   ansible.builtin.shell: mdadm --stop --scan
 
 - name: Overwrite disks with zeroes
@@ -9,7 +8,7 @@
     - /dev/nvme0n1
     - /dev/nvme1n1
 
-- name: Create system partitions
+- name: Create md array component partitions for base system 
   community.general.parted:
     device: "{{ item }}"
     number: 1
@@ -21,7 +20,7 @@
     - /dev/nvme0n1
     - /dev/nvme1n1
 
-- name: Create local-lvm partitions
+- name: Create md array component partitions for local vm disks
   community.general.parted:
     device: "{{ item }}"
     number: 2
@@ -32,7 +31,7 @@
     - /dev/nvme0n1
     - /dev/nvme1n1
 
-- name: Create longhorn partitions
+- name: Create md array component partitions for longhorn
   community.general.parted:
     device: "{{ item }}"
     number: 3
@@ -43,7 +42,7 @@
     - /dev/nvme0n1
     - /dev/nvme1n1
 
-- name: Create linstor partitions
+- name: Create md array component partitions for linstor
   community.general.parted:
     device: "{{ item }}"
     number: 4
@@ -58,18 +57,18 @@
   ansible.builtin.shell: >
     mdadm --zero-superblock /dev/nvme0n1p1 /dev/nvme1n1p1 /dev/nvme0n1p2 /dev/nvme1n1p2 /dev/nvme0n1p3 /dev/nvme1n1p3 /dev/nvme0n1p4 /dev/nvme1n1p4
 
-- name: Create system software raid device
+- name: Create md array for linux base system
   ansible.builtin.shell: >
     mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme0n1p1 /dev/nvme1n1p1 --metadata=0.90 --name=pve-system
 
-- name: Create lvm vmdata software raid device
+- name: Create md array for local vm disk storage
   ansible.builtin.shell: >
     yes | mdadm --create /dev/md1 --level=0 --raid-devices=2 /dev/nvme0n1p2 /dev/nvme1n1p2 --name=pve-vmdata
 
-- name: Create longhorn software raid device
+- name: Create md array for longhorn (k8s)
   ansible.builtin.shell: >
     yes | mdadm --create /dev/md2 --level=0 --raid-devices=2 /dev/nvme0n1p3 /dev/nvme1n1p3 --name=k8s-longhorn
 
-- name: Create linstor software raid device
+- name: Create md array for linstor
   ansible.builtin.shell: >
     yes | mdadm --create /dev/md3 --level=0 --raid-devices=2 /dev/nvme0n1p4 /dev/nvme1n1p4 --name=linstor-data
