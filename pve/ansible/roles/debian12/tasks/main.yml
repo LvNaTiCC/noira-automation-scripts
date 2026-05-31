@@ -16,7 +16,7 @@
 - name: Overwrite system disk with zeroes
   tags: partitioning
   ansible.builtin.shell: > 
-    dd if=/dev/zero of=/dev/md0 bs=1M count=513 status=progress
+    dd if=/dev/zero of=/dev/md0 bs=1M count=2048 status=progress
 ###
 
 # Partitioning section
