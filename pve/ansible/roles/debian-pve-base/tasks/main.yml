@@ -104,6 +104,8 @@
   register: gateway_result
   changed_when: false
 
+
+
 # According to https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
 - name: Create routing table for vSwitch
   ansible.builtin.lineinfile:
@@ -143,7 +145,7 @@
   ansible.builtin.copy:
     dest: /mnt/etc/fstab
     content: |
-      {{ root_partition_uuid_result.stdout }} / ext4 defaults 0 1
+      {{ root_partition_uuid_result.stdout }} / btrfs defaults,compress=zstd,noatime 0 2
       {{ swap_partition_uuid_result.stdout }} swap swap defaults 0 0
 
 - name: Add ssh authorized_keys
