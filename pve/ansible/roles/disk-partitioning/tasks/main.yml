@@ -1,3 +1,16 @@
+- name: Clean up binds
+  tags: partitioning
+  ansible.builtin.shell: >
+    umount -l /mnt/{{ item }}
+  loop: [proc, sys, dev, dev/pts, run]
+  failed_when: false
+
+- name: Clean up root mount
+  tags: partitioning
+  ansible.posix.mount:
+    path: "/mnt"
+    state: unmounted
+
 - name: Stop all arrays
   ansible.builtin.shell: mdadm --stop --scan
 
