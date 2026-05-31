@@ -213,6 +213,10 @@
   ansible.builtin.shell: >
     mdadm --detail --scan | tee -a /mnt/etc/mdadm/mdadm.conf
 
+- name: Prevent any further mdadm configuration modification during system updates
+  ansible.builtin.shell: >
+    chattr +i /mnt/etc/mdadm/mdadm.conf
+
 - name: Install grub to boot devices
   ansible.builtin.shell: >
     chroot /mnt grub-install /dev/nvme0n1 && chroot /mnt grub-install /dev/nvme1n1
