@@ -25,6 +25,22 @@
   ansible.builtin.shell: |
     wget https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg -O /usr/share/keyrings/proxmox-archive-keyring.gpg
 
+- name: Set GRUB device selections
+  ansible.builtin.debconf:
+    name: grub-pc
+    question: grub-pc/install_devices
+    value: 
+      - /dev/nvme0n1
+      - /dev/nvme0n2
+    vtype: multiselect
+
+- name: Install grub-pc non-interactively
+  ansible.builtin.apt:
+    name: grub-pc
+    state: latest
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
 - name: Run apt update and apt upgrade
   ansible.builtin.apt:
     update_cache: true
