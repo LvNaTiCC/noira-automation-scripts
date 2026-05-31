@@ -43,7 +43,7 @@
 - name: Run apt update and apt upgrade
   ansible.builtin.apt:
     update_cache: true
-    upgrade: safe
+    upgrade: full
 
 - name: Install the Proxmox VE Kernel
   ansible.builtin.apt:
