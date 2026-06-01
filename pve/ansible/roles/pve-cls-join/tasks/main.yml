@@ -25,17 +25,25 @@
   ansible.builtin.set_fact:
     master_fingerprint: "{{ cluster_info.cluster_join.nodelist | selectattr('pve_addr', 'equalto', '172.16.1.1') | map(attribute='pve_fp') | first }}"
 
-- name: Join a Proxmox VE Cluster
-  community.proxmox.proxmox_cluster:
-    state: present
-    api_host: "{{ item }}"
-    api_user: root@pam
-    api_password: changeme
-    master_ip: 172.16.1.1
-    fingerprint: "{{ master_fingerprint }}"
-  register: join_result
-  failed_when: join_result.changed # This is done because community.proxmox module misreports success
-  until: not join_result.changed and join_result is not failed
-  loop:
-    - pve02.noira.moe
-    - pve03.noira.moe
+- block:
+  - name: Join a Proxmox VE Cluster
+    community.proxmox.proxmox_cluster:
+      state: present
+      api_host: "{{ item }}"
+      api_user: root@pam
+      api_password: changeme
+      master_ip: 172.16.1.1
+      fingerprint: "{{ master_fingerprint }}"
+    register: join_result
+    until: not join_result.changed
+    retries: 3
+    delay: 10
+    loop:
+      - pve02.noira.moe
+      - pve03.noira.moe
+    
+  - name: Mark failure if still reports changed
+    ansible.builtin.fail:
+      msg: "Cluster join might have failed for {{ item.item }}"
+    loop: "{{ join_result.results | default([]) }}"
+    when: item.changed
