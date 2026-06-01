@@ -1,4 +1,4 @@
 - name: Create basic non-redundant pool for vm disks and add it to Proxmox
   ansible.builtin.shell: |
-    zpool create local-zfs-pool -o ashift=12 -O recordsize=32K -O atime=off -O sync=disabled /dev/nvme0n1p2 /dev/nvme1n1p2
+    zpool create local-zfs-pool -f -o ashift=12 -O recordsize=32K -O atime=off -O sync=disabled /dev/nvme0n1p2 /dev/nvme1n1p2
     pvesm add zfspool local-zvs-storage -pool local-zfs-pool
