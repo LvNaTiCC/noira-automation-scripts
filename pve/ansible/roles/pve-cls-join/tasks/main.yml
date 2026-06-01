@@ -33,6 +33,9 @@
     api_password: changeme
     master_ip: 172.16.1.1
     fingerprint: "{{ master_fingerprint }}"
+  register: join_result
+  failed_when: join_result.changed # This is done because community.proxmox module misreports success
+  until: not join_result.changed and join_result is not failed
   loop:
     - pve02.noira.moe
     - pve03.noira.moe
