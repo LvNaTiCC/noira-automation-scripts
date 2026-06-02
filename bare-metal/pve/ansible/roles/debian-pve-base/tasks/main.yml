@@ -227,7 +227,7 @@
 
 - name: Change root password
   ansible.builtin.shell: >
-    echo "root:changeme" | chroot /mnt chpasswd
+    echo "root:changeme" | chroot /mnt {{ pve_root_password }}
 
 - name: Clean up binds
   tags: postinstall_cleanup
