@@ -38,9 +38,13 @@ For a nice status page, Uptime Kuma will be used, on top of k8s. To make sure up
 
 No linux VM or otherwise should be ever be accessible from the internet without a proper AES256 ssh key. Services that allow login wia browser must be either well-hardened according to their documentation, or, if impossible, reasonably restricted by IP whitelist or other kind of secure authentication. Proxmox Web UI should not be accessible from the internet and should only be accessed using a terminal server either via xrdp or ssh tunneling passthrough.
 
+Service VMs, Hypervisors and the Virtual Router should exist on a service subnet, inaccessible for usual vm traffic, including k8s pods (they should use non-service subnet bindings). No traffic inside other network should be routable for the exception of bastion VMs. 
+
 Root user account should be disabled for all internet-facing vms (including bastions), including potentially vulnerable web service.
 
 Bastion VMs should be both AES256 ssh key protected and IP whitelisted.
+
+For a case of a bastion failure, an eleventh hour private ssh key to the master proxmox node should be stored in a secure, encrypted location that is not easy or fast for you to retreive from (can be achieved using some computationally intensive encryption/decryption methods) 
 
 ## Principles 
 
