@@ -31,6 +31,7 @@ The exact topology should be described using a GNS3 diagram. #TODO
 ## Observability
 
 For monitoring, classic prometheus + grafana will be used, on top of k8s with exporters reporting from PVE nodes and k8s cluster, as well as chr router.  #TODO
+
 For a nice status page, Uptime Kuma will be used, on top of k8s. To make sure uptime kuma gets an external look, a proxy to an unrelated VPS is advised.  #TODO
 
 ## Principles 
