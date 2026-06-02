@@ -50,3 +50,4 @@ terraform.rc
 inventory.ini
 hosts.ini
 all.yml
+ansible.cfg
