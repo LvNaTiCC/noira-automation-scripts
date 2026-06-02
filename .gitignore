@@ -47,5 +47,6 @@ terraform.rc
 # planout
 
 # Ansible
-*inventory.ini
-*all.yml
+inventory.ini
+hosts.ini
+all.yml
