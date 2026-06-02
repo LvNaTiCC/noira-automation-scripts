@@ -1,0 +1,4 @@
+mikrotik_chr_dl_link: "https://download.mikrotik.com/routeros/7.21.4/chr-7.21.4.img.zip"
+debian_cloud_dl_link: "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+ubuntu_cloud_dl_link: "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64.img"
+rocky_cloud_dl_link:  "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"

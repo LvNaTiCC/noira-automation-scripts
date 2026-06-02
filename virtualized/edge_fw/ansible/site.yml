@@ -1,6 +1,0 @@
-- name: Setup Edge Firewall with a Virtual IP
-  hosts: edge_vms
-  become: true
-  roles:
-    - keepalived
-    - nftables

@@ -97,6 +97,7 @@ variable "network_mask" {
 
 variable "node_vms_ip_prefix" {
   type = string
+  default = "172.16.90."
 }
 
 variable "cp_vms_ip_prefix" {

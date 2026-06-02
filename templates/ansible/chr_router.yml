@@ -1,0 +1,10 @@
+---
+- name: Create a CHR router template
+  hosts: pve_nodes
+
+  tasks:
+    - name: Download CHR router image
+    - name: Convert CHR raw image to qcow2
+    - name: Copy expect prep script 
+    - name: Create a VM to be templated
+    - name: Run the expect script in serial mode
