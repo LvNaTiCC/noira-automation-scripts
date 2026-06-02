@@ -1,0 +1,21 @@
+- name: Download Trixie image
+  ansible.builtin.get_url:
+    url: {{ debian_cloud_dl_link }}
+    dest: /tmp/debian_trixie_cloud.qcow2
+
+- name: Create a blank vm for template
+  ansible.builtin.shell: |
+    qm create {{ debian_cloud_template_vmid }} \
+      --botdisk scsi0 \
+      --cores 2 \
+      --sockets 1 \
+      --cpu cputype=host \
+      --memory 2048 \
+      --name {{ debian_cloud_template_name }} \
+      --start 0 \
+      --ostype l26
+
+- name: Import the qcow2 and attach the disk
+  ansible.builtin.shell: |
+    qm importdisk {{ debian_cloud_template_vmid }} \
+    qm set {{ debian_cloud_template_vmid }} --scsi0 local-zfs-pool:vm-{{ debian_cloud_template_vmid }}-disk-0
