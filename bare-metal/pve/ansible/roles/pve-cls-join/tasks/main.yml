@@ -8,7 +8,7 @@
     state: present
     api_host: pve01.noira.moe
     api_user: root@pam
-    api_password: changeme
+    api_password: "{{ pve_root_password }}"
     validate_certs: false
     link0: 
     cluster_name: "noira-pve-cls"
@@ -17,7 +17,7 @@
   community.proxmox.proxmox_cluster_join_info:
     api_host: 172.16.1.1
     api_user: root@pam
-    api_password: changeme
+    api_password: "{{ pve_root_password }}"
     validate_certs: false
   register: cluster_info
 
@@ -31,7 +31,7 @@
       state: present
       api_host: "{{ item }}"
       api_user: root@pam
-      api_password: changeme
+      api_password: "{{ pve_root_password }}"
       master_ip: 172.16.1.1
       fingerprint: "{{ master_fingerprint }}"
     register: join_result
