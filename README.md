@@ -1,6 +1,6 @@
 # Noira Virtual Infrastracture
 
-This specification is, until specificially mentioned, a wishlist of sorts. A vision of what a private cloud for a private person, specificially an engineer wanting to host their services, practice skills in a near-production environment. Noira is intended to be a perfect playground with all critical pieces in place for developing, testing, learning and hosting infrastructure software or otherwisely networked apps. Nothing stops anyone from running desktop software there, though. 
+This specification is, until specificially mentioned, a wishlist of sorts. A vision of what a private cloud for a private person, specificially an engineer wanting to host their services, practice skills in a near-production environment could be like. Noira is intended to be a perfect playground with all critical pieces in place for developing, testing, learning and hosting infrastructure software or otherwisely networked apps. Nothing stops anyone from running desktop software there, though. 
 
 ## Hardware assumptions
 
