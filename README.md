@@ -34,6 +34,14 @@ For monitoring, classic prometheus + grafana will be used, on top of k8s with ex
 
 For a nice status page, Uptime Kuma will be used, on top of k8s. To make sure uptime kuma gets an external look, a proxy to an unrelated VPS is advised.  #TODO
 
+## User AC and hardening
+
+No linux VM or otherwise should be ever be accessible from the internet without a proper AES256 ssh key. Services that allow login wia browser must be either well-hardened according to their documentation, or, if impossible, reasonably restricted by IP whitelist or other kind of secure authentication. Proxmox Web UI should not be accessible from the internet and should only be accessed using a terminal server either via xrdp or ssh tunneling passthrough.
+
+Root user account should be disabled for all internet-facing vms (including bastions), including potentially vulnerable web service.
+
+Bastion VMs should be both AES256 ssh key protected and IP whitelisted.
+
 ## Principles 
 
 1. Zero to hero. All base infrastructure should be deployable without any manual intervention required. The goal is to have the system that is once properly described via variables, can be deployed with a single click or a command.
