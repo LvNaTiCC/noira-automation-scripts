@@ -20,7 +20,7 @@ This specification is, until specificially mentioned, a wishlist of sorts. A vis
 
 Network is built around several crucial pieces.
 
-For controlling edge traffic, DNAT/SNAT is used on hypervisors, forwarding a range of ports (60000-62000 by default, subject to change) to a virtual router (based on Mikrotik CHR). This configuration is supposed to stay immutable and not a subject to change (as for services as cattle principle).
+For controlling edge traffic, DNAT/SNAT is used on hypervisors, forwarding a range of ports (80,443,60000-62000 by default, subject to change) to a virtual router (based on Mikrotik CHR). This configuration is supposed to stay immutable and not a subject to change (as for services as cattle principle).
 
 This virtual router is the one making decisions about what goes where and is the main configuration mutation point. The way network segmentation is built, is by creating bridges layered over VXVLAN on existing IP fabric. Those bridges are then attached to the CHR router for per-port network segment configuration.
 
