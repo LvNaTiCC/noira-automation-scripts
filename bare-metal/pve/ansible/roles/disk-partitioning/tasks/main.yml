@@ -15,6 +15,7 @@
   tags: partitioning
   ansible.builtin.shell: >
     umount /dev/md0
+  failed_when: false
 
 - name: Stop all arrays
   ansible.builtin.shell: mdadm --stop --scan
