@@ -86,5 +86,5 @@
 
 - name: Create md array for linux base system
   ansible.builtin.shell: >
-    mdadm --create /dev/md0 --level=1 --raid-devices={{ len(blockdevs) }} {{ all_system_partitions }} --metadata=0.90 --name=pve-system
+    mdadm --create /dev/md0 --level=1 --raid-devices={{ blockdevs|length }} {{ all_system_partitions }} --metadata=0.90 --name=pve-system
 
