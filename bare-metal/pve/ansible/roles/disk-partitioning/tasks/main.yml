@@ -61,7 +61,7 @@
     all_blockdev_partitions: >-
       {{
         blockdevs
-        | product(range(4))
+        | product(range(1,4))
         | map('join', 'p')
         | join(' ')
       }}
