@@ -6,11 +6,10 @@
 - name: Create a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
     state: present
-    api_host: "{{ inventory_hostname }}"
+    api_host: "{{ ansible_host }}"
     api_user: root@pam
     api_password: "{{ pve_root_password }}"
     validate_certs: false
-    link0: 
     cluster_name: " {{ pve_cluster_name }}"
 
 - name: Get cluster join information
@@ -36,6 +35,7 @@
       fingerprint: "{{ master_fingerprint }}"
     register: join_result
     until: not join_result.changed
+    validate_certs: false
     retries: 3
     delay: 10
     with_inventory_hostnames:
