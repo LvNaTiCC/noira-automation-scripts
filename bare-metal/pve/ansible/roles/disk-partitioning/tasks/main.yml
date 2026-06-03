@@ -35,7 +35,7 @@
     number: 2
     state: present
     part_start: "{{ pve_system_disk_size }}"
-    part_end: "{{ local_zfs_vmdata_disk_allocation_end }} %"
+    part_end: "{{ local_zfs_vmdata_disk_allocation_end }}"
   loop: "{{ blockdevs }}"
 
 - name: Create component partitions for longhorn
@@ -43,8 +43,8 @@
     device: "/dev/{{ item }}"
     number: 3
     state: present
-    part_start: "{{ local_zfs_vmdata_disk_allocation_end }} %"
-    part_end: "{{ longhorn_disk_allocation_end }} %"
+    part_start: "{{ local_zfs_vmdata_disk_allocation_end }}"
+    part_end: "{{ longhorn_disk_allocation_end }}"
   loop: "{{ blockdevs }}"
 
 - name: Create component partitions for linstor
@@ -52,8 +52,8 @@
     device: "/dev/{{ item }}"
     number: 4
     state: present
-    part_start: "{{ longhorn_disk_allocation_end }} %"
-    part_end: "{{ linstor_disk_allocation_end }} %"
+    part_start: "{{ longhorn_disk_allocation_end }}"
+    part_end: "{{ linstor_disk_allocation_end }}"
   loop: "{{ blockdevs }}"
 
 - name: Build a list of all partitions
