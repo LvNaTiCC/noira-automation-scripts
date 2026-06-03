@@ -17,7 +17,7 @@
 - name: Overwrite disks with zeroes
   tags: fresh-start
   ansible.builtin.shell: dd if=/dev/zero of={{ item }} bs=1M count=256 status=progress
-  loop: blockdevs
+  loop: "{{ blockdevs }}"
 
 - name: Create md array component partitions for base system 
   community.general.parted:
@@ -27,7 +27,7 @@
     state: present
     part_start: 1GiB
     part_end: "{{ pve_system_disk_size }}"
-  loop: blockdevs
+  loop: "{{ blockdevs }}"
 
 - name: Create component partitions for local vm disks
   community.general.parted:
@@ -36,7 +36,7 @@
     state: present
     part_start: "{{ pve_system_disk_size }}"
     part_end: "{{ local_zfs_vmdata_disk_allocation_end }} %"
-  loop: blockdevs
+  loop: "{{ blockdevs }}"
 
 - name: Create component partitions for longhorn
   community.general.parted:
@@ -45,7 +45,7 @@
     state: present
     part_start: "{{ local_zfs_vmdata_disk_allocation_end }} %"
     part_end: "{{ longhorn_disk_allocation_end }} %"
-  loop: blockdevs
+  loop: "{{ blockdevs }}"
 
 - name: Create component partitions for linstor
   community.general.parted:
@@ -54,7 +54,7 @@
     state: present
     part_start: "{{ longhorn_disk_allocation_end }} %"
     part_end: "{{ linstor_disk_allocation_end }} %"
-  loop: blockdevs
+  loop: "{{ blockdevs }}"
 
 - name: Build a list of all partitions
   ansible.builtin.set_fact:
