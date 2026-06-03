@@ -1,4 +1,15 @@
-- name: Create basic non-redundant pool for vm disks and add it to Proxmox
+- name: Build a list of all zfs partitions
+  ansible.builtin.set_fact:
+    all_zfs_partitions: >-
+      {{
+        [
+          {% for dev in blockdevs %}
+            '/dev/' ~ dev ~ 'p' ~ 2
+          {% endfor %}
+        ] | join (' ')
+      }}
+
+- name: Create basic non-redundant pool for vm disks and add it to PVE
   ansible.builtin.shell: |
-    zpool create local-zfs-pool -f -o ashift=12 -O recordsize=32K -O atime=off -O sync=disabled /dev/nvme0n1p2 /dev/nvme1n1p2
-    pvesm add zfspool local-zvs-storage -pool local-zfs-pool
+    zpool create local-zfs-pool -f {{ zfs_pool_settings }} {{ all_zfs_partitions }}
+    pvesm add zfspool local-zvs -pool local-zfs

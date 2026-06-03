@@ -17,9 +17,7 @@
 - name: Overwrite disks with zeroes
   tags: fresh-start
   ansible.builtin.shell: dd if=/dev/zero of={{ item }} bs=1M count=256 status=progress
-  loop:
-    - /dev/nvme0n1
-    - /dev/nvme1n1
+  loop: blockdevs
 
 - name: Create md array component partitions for base system 
   community.general.parted:
@@ -28,53 +26,69 @@
     label: msdos
     state: present
     part_start: 1GiB
-    part_end: 64GiB
-  loop:
-    - /dev/nvme0n1
-    - /dev/nvme1n1
+    part_end: "{{ pve_system_disk_size }}"
+  loop: blockdevs
 
 - name: Create component partitions for local vm disks
   community.general.parted:
     device: "{{ item }}"
     number: 2
     state: present
-    part_start: 64GiB
-    part_end: 60%
-  loop:
-    - /dev/nvme0n1
-    - /dev/nvme1n1
+    part_start: "{{ pve_system_disk_size }}"
+    part_end: "{{ local_zfs_vmdata_disk_allocation_end }} %"
+  loop: blockdevs
 
 - name: Create component partitions for longhorn
   community.general.parted:
     device: "{{ item }}"
     number: 3
     state: present
-    part_start: 60%
-    part_end: 85%
-  loop:
-    - /dev/nvme0n1
-    - /dev/nvme1n1
+    part_start: "{{ local_zfs_vmdata_disk_allocation_end }} %"
+    part_end: "{{ longhorn_disk_allocation_end }} %"
+  loop: blockdevs
 
 - name: Create component partitions for linstor
   community.general.parted:
     device: "{{ item }}"
     number: 4
     state: present
-    part_start: 85%
-    part_end: 100%
-  loop:
-    - /dev/nvme0n1
-    - /dev/nvme1n1
+    part_start: "{{ longhorn_disk_allocation_end }} %"
+    part_end: "{{ linstor_disk_allocation_end }} %"
+  loop: blockdevs
+
+- name: Build a list of all partitions
+  ansible.builtin.set_fact:
+    all_blockdev_partitions: >-
+      {{
+        [
+          {% for dev in blockdevs %}
+            {% for i in range(4) %}
+              '/dev/' ~ dev ~ 'p' ~ i
+            {% endfor %}
+          {% endfor %}
+        ] | join (' ')
+      }}
 
 - name: Zero all superblocks from component disks
   ansible.builtin.shell: >
-    mdadm --zero-superblock /dev/nvme0n1p1 /dev/nvme1n1p1 /dev/nvme0n1p2 /dev/nvme1n1p2 /dev/nvme0n1p3 /dev/nvme1n1p3 /dev/nvme0n1p4 /dev/nvme1n1p4
+    mdadm --zero-superblock {{ all_blockdev_partitions }}
 
 - name: Wipefs from all partitions just in case
   ansible.builtin.shell: >
-    wipefs --all --force /dev/nvme0n1p1 /dev/nvme1n1p1 /dev/nvme0n1p2 /dev/nvme1n1p2 /dev/nvme0n1p3 /dev/nvme1n1p3 /dev/nvme0n1p4 /dev/nvme1n1p4
+    wipefs --all --force {{ all_blockdev_partitions }}
+
+- name: Build a list of all system partitions
+  ansible.builtin.set_fact:
+    all_system_partitions: >-
+      {{
+        [
+          {% for dev in blockdevs %}
+            '/dev/' ~ dev ~ 'p' ~ 1
+          {% endfor %}
+        ] | join (' ')
+      }}
 
 - name: Create md array for linux base system
   ansible.builtin.shell: >
-    mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme0n1p1 /dev/nvme1n1p1 --metadata=0.90 --name=pve-system
+    mdadm --create /dev/md0 --level=1 --raid-devices={{ len(blockdevs) }} {{ all_system_partitions }} --metadata=0.90 --name=pve-system
 

@@ -1,0 +1,13 @@
+[pve_master]
+pve01.noira.moe ansible_host=<ip-1>  ansible_password=<pwd-1>
+
+[pve_slaves]
+pve02.noira.moe ansible_host=<ip-2>  ansible_password=<pwd-2>
+pve03.noira.moe ansible_host=<ip-3>   ansible_password=<pwd-3>
+
+[pve_nodes:children]
+pve_master
+pve_slaves
+
+[pve_nodes:vars]
+ansible_user=root

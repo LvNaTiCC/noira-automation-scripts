@@ -1,5 +1,5 @@
 - name: Prepare disks and OS for PVE cluster deployment
-  hosts: pve-nodes
+  hosts: pve_nodes
   roles: 
     - role: disk-partitioning
       tags: rescue_preparation,partitioning
@@ -7,11 +7,11 @@
       tags: rescue_preparation,debootstrap
     - role: deploy-pve-9
       tags: pve9_deployment
-    - role: zfs-vm-storage # UNTESTED
+    - role: zfs-vm-storage
       tags: zfs-setup
 
 - name: Cluster setup
-  hosts: pve-nodes[0]
+  hosts: pve_master
   roles:
     - role: pve-cls-join
       tags: cluster-setup

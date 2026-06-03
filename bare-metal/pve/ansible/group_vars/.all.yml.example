@@ -1,0 +1,19 @@
+authorized_keys: |
+  ssh-ed25519 <key-1> usr@server
+  ssh-ed25519 <key-2> usr@server
+pve_root_password: ch4ngeme_r3a11y_.
+service_subnet_prefix: 192.168.1
+service_subnet_mask: 255.255.255.0
+blockdevs:
+  - nvme0n1
+  - nvme1n1
+pve_node_prefix: pve
+pve_domain_name_parent: test.pet
+pve_system_disk_size: 64GiB
+local_zfs_vmdata_disk_allocation_end: "50%"
+longhorn_disk_allocation_end: "75%"
+linstor_disk_allocation_end: "100%"
+pve_cluster_name: "test-pve-cls"
+zfs_pool_settings: "-o ashift=12 -O recordsize=32K -O atime=off -O sync=disabled" # Tuned for NVMe general VM load, change if needed
+vlan_id: 1000
+service_subnet_mtu: 1400

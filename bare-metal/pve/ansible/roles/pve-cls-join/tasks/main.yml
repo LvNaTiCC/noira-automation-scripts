@@ -6,16 +6,16 @@
 - name: Create a Proxmox VE Cluster
   community.proxmox.proxmox_cluster:
     state: present
-    api_host: pve01.noira.moe
+    api_host: "{{ inventory_hostname }}"
     api_user: root@pam
     api_password: "{{ pve_root_password }}"
     validate_certs: false
     link0: 
-    cluster_name: "noira-pve-cls"
+    cluster_name: " {{ pve_cluster_name }}"
 
 - name: Get cluster join information
   community.proxmox.proxmox_cluster_join_info:
-    api_host: 172.16.1.1
+    api_host: "{{ service_subnet_prefix }}.1"
     api_user: root@pam
     api_password: "{{ pve_root_password }}"
     validate_certs: false
@@ -23,7 +23,7 @@
 
 - name: Set master fingeprint fact
   ansible.builtin.set_fact:
-    master_fingerprint: "{{ cluster_info.cluster_join.nodelist | selectattr('pve_addr', 'equalto', '172.16.1.1') | map(attribute='pve_fp') | first }}"
+    master_fingerprint: "{{ cluster_info.cluster_join.nodelist | selectattr('pve_addr', 'equalto', '{{ service_subnet_prefix }}.1') | map(attribute='pve_fp') | first }}"
 
 - block:
   - name: Join a Proxmox VE Cluster
@@ -32,15 +32,14 @@
       api_host: "{{ item }}"
       api_user: root@pam
       api_password: "{{ pve_root_password }}"
-      master_ip: 172.16.1.1
+      master_ip: "{{ service_subnet_prefix }}.1"
       fingerprint: "{{ master_fingerprint }}"
     register: join_result
     until: not join_result.changed
     retries: 3
     delay: 10
-    loop:
-      - pve02.noira.moe
-      - pve03.noira.moe
+    with_inventory_hostnames:
+        - all:!pve_slaves
     
   - name: Mark failure if still reports changed
     ansible.builtin.fail:
