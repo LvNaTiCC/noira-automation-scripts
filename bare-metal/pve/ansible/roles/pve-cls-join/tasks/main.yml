@@ -10,7 +10,7 @@
     api_user: root@pam
     api_password: "{{ pve_root_password }}"
     validate_certs: false
-    cluster_name: " {{ pve_cluster_name }}"
+    cluster_name: "{{ pve_cluster_name }}"
 
 - name: Get cluster join information
   community.proxmox.proxmox_cluster_join_info:
