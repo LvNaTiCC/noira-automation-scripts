@@ -21,7 +21,7 @@
 
 - name: Create md array component partitions for base system 
   community.general.parted:
-    device: "{{ item }}"
+    device: "/dev/{{ item }}"
     number: 1
     label: msdos
     state: present
@@ -31,7 +31,7 @@
 
 - name: Create component partitions for local vm disks
   community.general.parted:
-    device: "{{ item }}"
+    device: "/dev/{{ item }}"
     number: 2
     state: present
     part_start: "{{ pve_system_disk_size }}"
@@ -40,7 +40,7 @@
 
 - name: Create component partitions for longhorn
   community.general.parted:
-    device: "{{ item }}"
+    device: "/dev/{{ item }}"
     number: 3
     state: present
     part_start: "{{ local_zfs_vmdata_disk_allocation_end }} %"
@@ -49,7 +49,7 @@
 
 - name: Create component partitions for linstor
   community.general.parted:
-    device: "{{ item }}"
+    device: "/dev/{{ item }}"
     number: 4
     state: present
     part_start: "{{ longhorn_disk_allocation_end }} %"
