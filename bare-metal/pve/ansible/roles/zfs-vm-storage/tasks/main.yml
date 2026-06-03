@@ -3,7 +3,7 @@
     all_zfs_partitions: >-
       {{
         blockdevs
-        | product(2)
+        | product([2])
         | map('join', 'p')
         | join(' ')
       }}
