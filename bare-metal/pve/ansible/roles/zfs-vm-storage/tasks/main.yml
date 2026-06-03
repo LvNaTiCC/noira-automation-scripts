@@ -3,10 +3,9 @@
     all_zfs_partitions: >-
       {{
         [
-          {% for dev in blockdevs %}
-            '/dev/' ~ dev ~ 'p' ~ 2
-          {% endfor %}
-        ] | join (' ')
+          '/dev/' ~ dev ~ 'p' ~ 2
+          for dev in blockdevs
+        ] | join(' ')
       }}
 
 - name: Create basic non-redundant pool for vm disks and add it to PVE

@@ -61,12 +61,10 @@
     all_blockdev_partitions: >-
       {{
         [
-          {% for dev in blockdevs %}
-            {% for i in range(4) %}
-              '/dev/' ~ dev ~ 'p' ~ i
-            {% endfor %}
-          {% endfor %}
-        ] | join (' ')
+          '/dev/' ~ dev ~ 'p' ~ i
+          for dev in blockdevs
+          for i in range(4)
+        ] | join(' ')
       }}
 
 - name: Zero all superblocks from component disks
@@ -82,10 +80,9 @@
     all_system_partitions: >-
       {{
         [
-          {% for dev in blockdevs %}
-            '/dev/' ~ dev ~ 'p' ~ 1
-          {% endfor %}
-        ] | join (' ')
+          '/dev/' ~ dev ~ 'p' ~ 1
+          for dev in blockdevs
+        ] | join(' ')
       }}
 
 - name: Create md array for linux base system
