@@ -1,5 +1,5 @@
 127.0.0.1       localhost
-{% for host_name in groups['pve-nodes'] %}
+{% for host_name in groups['pve_nodes'] %}
 172.16.1.{{ loop.index }} {{ host_name }} {{ host_name.split('.')[0] }}
 {% endfor %}
 
