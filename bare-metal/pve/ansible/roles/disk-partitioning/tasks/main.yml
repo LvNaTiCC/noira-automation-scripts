@@ -60,11 +60,10 @@
   ansible.builtin.set_fact:
     all_blockdev_partitions: >-
       {{
-        [
-          '/dev/' ~ dev ~ 'p' ~ i
-          for dev in blockdevs
-          for i in range(4)
-        ] | join(' ')
+        blockdevs
+        | product(range(4))
+        | map('join', 'p')
+        | join(' ')
       }}
 
 - name: Zero all superblocks from component disks
@@ -79,10 +78,10 @@
   ansible.builtin.set_fact:
     all_system_partitions: >-
       {{
-        [
-          '/dev/' ~ dev ~ 'p' ~ 1
-          for dev in blockdevs
-        ] | join(' ')
+        blockdevs
+        | product(1)
+        | map('join', 'p')
+        | join(' ')
       }}
 
 - name: Create md array for linux base system

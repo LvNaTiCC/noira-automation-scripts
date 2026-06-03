@@ -5,8 +5,8 @@ pve_root_password: ch4ngeme_r3a11y_.
 service_subnet_prefix: 192.168.1
 service_subnet_mask: 255.255.255.0
 blockdevs:
-  - nvme0n1
-  - nvme1n1
+  - /dev/nvme0n1
+  - /dev/nvme1n1
 pve_node_prefix: pve
 pve_domain_name_parent: test.pet
 pve_system_disk_size: 64GiB
