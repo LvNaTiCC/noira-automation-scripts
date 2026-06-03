@@ -20,9 +20,13 @@
     validate_certs: false
   register: cluster_info
 
+- name: Set master ip address
+  ansible.builtin.set_fact:
+    master_ip_addr: "{{ service_subnet_prefix }}.1"
+
 - name: Set master fingeprint fact
   ansible.builtin.set_fact:
-    master_fingerprint: "{{ cluster_info.cluster_join.nodelist | selectattr('pve_addr', 'equalto', '{{ service_subnet_prefix }}.1') | map(attribute='pve_fp') | first }}"
+    master_fingerprint: "{{ cluster_info.cluster_join.nodelist | selectattr('pve_addr', 'equalto', master_ip_addr) | map(attribute='pve_fp') | first }}"
 
 - block:
   - name: Join a Proxmox VE Cluster
@@ -39,7 +43,7 @@
     retries: 3
     delay: 10
     with_inventory_hostnames:
-        - all:!pve_slaves
+        - all:pve_slaves
     
   - name: Mark failure if still reports changed
     ansible.builtin.fail:
