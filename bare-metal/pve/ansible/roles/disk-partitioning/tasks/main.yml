@@ -11,12 +11,6 @@
     path: "/mnt"
     state: unmounted
 
-- name: Explicitly umount system software raid
-  tags: partitioning
-  ansible.builtin.shell: >
-    umount /dev/md0
-  failed_when: false
-
 - name: Stop all arrays
   ansible.builtin.shell: mdadm --stop --scan
 
