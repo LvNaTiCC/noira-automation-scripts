@@ -33,9 +33,9 @@
       api_password: "{{ pve_root_password }}"
       master_ip: "{{ service_subnet_prefix }}.1"
       fingerprint: "{{ master_fingerprint }}"
+      validate_certs: false
     register: join_result
     until: not join_result.changed
-    validate_certs: false
     retries: 3
     delay: 10
     with_inventory_hostnames:
