@@ -2,16 +2,22 @@
   hosts: pve_nodes
   roles: 
     - role: disk-partitioning
-      tags: rescue_preparation,partitioning
+      tags: rescue_preparation,partitioning,base_deployment
     - role: debian-pve-base
-      tags: rescue_preparation,debootstrap
+      tags: rescue_preparation,debootstrap,base_deployment
     - role: deploy-pve-9
-      tags: pve9_deployment
+      tags: pve9_deployment,base_deployment
     - role: zfs-vm-storage
-      tags: zfs-setup
+      tags: zfs-setup,base_deployment,base_deployment
 
 - name: Cluster setup
   hosts: pve_master
   roles:
     - role: pve-cls-join
-      tags: cluster-setup
+      tags: cluster-setup,base_deployment
+
+- name: SDN Setup
+  hosts: pve_master
+  roles:
+    - role: pve-cls-join
+      tags: sdn-configuration
