@@ -10,8 +10,7 @@ blockdevs:
 pve_node_prefix: pve
 pve_domain_name_parent: test.pet
 pve_system_disk_size: 64GiB
-local_zfs_vmdata_disk_allocation_end: "50%"
-longhorn_disk_allocation_end: "75%"
+local_zfs_vmdata_disk_allocation_end: "80%"
 linstor_disk_allocation_end: "100%"
 pve_cluster_name: "test-pve-cls"
 zfs_pool_settings: "-o ashift=12 -O recordsize=32K -O atime=off -O sync=disabled" # Tuned for NVMe general VM load, change if needed
