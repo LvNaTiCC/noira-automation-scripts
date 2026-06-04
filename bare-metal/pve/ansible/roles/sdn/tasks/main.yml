@@ -1,0 +1,30 @@
+- name: Set peers
+  ansible.builtin.set_fact:
+    peers: |
+      {% set ip_addresses = [] %}
+      {% for i in range(1, (groups['pve_nodes'] | length) + 1) %}
+      {% do ip_addresses.append(service_subnet_prefix ~ "." ~ i)}
+      {% endfor %}
+      {{ ip_addresses | join(",")}}
+
+- name: Create VXVLAN
+  ansible.builtin.shell: |
+    pvesh create /cluster/sdn/zones \
+      --zone main \
+      --type vxlan \
+      --peers "{{ peers }}" \
+      --mtu 1350
+
+- name: Create VNets
+  ansible.builtin.shell: |
+    pvesh create /cluster/sdn/vnets \
+      --vnet {{ item.name }} \
+      --zone main \
+      --tag {{ item.tag }} \
+      --vlanaware 1
+  loop:
+    vnets
+
+- name: Apply Changes
+  ansible.builtin.shell: |
+    pvesh set /cluster/sdn
