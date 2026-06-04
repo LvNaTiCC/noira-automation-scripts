@@ -11,9 +11,9 @@ This specification is, until specificially mentioned, a wishlist of sorts. A vis
 ## Software Stack
 
 1. Proxmox Virtual Environment as first-class Hypervisor. #DONE
-2. K8s on top of PVE VMs with Longhorn for stateful VMs
-4. Local storage based on ZFS for most VMs #DONE
-5. Linstor storage for critical, non-write-intensive VMs for quick recovery time during failure
+2. Docker swarm on top of PVE VMs
+4. Local vm storage based on ZFS for VMs #DONE
+5. Linstor storage for vms that can't tolerate +n minutes data loss or need live migration
 6. Mikrotik CHR Router for inter-vm communication and edge traffic control
 
 ## Networking Stack
@@ -30,15 +30,15 @@ The exact topology should be described using a GNS3 diagram. #TODO
 
 ## Observability
 
-For monitoring, classic prometheus + grafana will be used, on top of k8s with exporters reporting from PVE nodes and k8s cluster, as well as chr router.  #TODO
+For monitoring, classic prometheus + grafana will be used, on top of docker swarm with exporters reporting from PVE nodes and docker swarm cluster, as well as chr router.  #TODO
 
-For a nice status page, Uptime Kuma will be used, on top of k8s. To make sure uptime kuma gets an external look, a proxy to an unrelated VPS is advised.  #TODO
+For a nice status page, Uptime Kuma will be used, on top of docker swarm. To make sure uptime kuma gets an external look, a proxy to an unrelated VPS is advised.  #TODO
 
 ## User AC and hardening
 
 No linux VM or otherwise should be ever be accessible from the internet without a proper AES256 ssh key. Services that allow login wia browser must be either well-hardened according to their documentation, or, if impossible, reasonably restricted by IP whitelist or other kind of secure authentication. Proxmox Web UI should not be accessible from the internet and should only be accessed using a terminal server either via xrdp or ssh tunneling passthrough.
 
-Service VMs, Hypervisors and the Virtual Router should exist on a service subnet, inaccessible for usual vm traffic, including k8s pods (they should use non-service subnet bindings). No traffic inside other network should be routable for the exception of bastion VMs. 
+Service VMs, Hypervisors and the Virtual Router should exist on a service subnet, inaccessible for usual vm traffic, including docker swarm containers (they should use non-service subnet bindings). No traffic inside other network should be routable for the exception of bastion VMs. 
 
 Root user account should be disabled for all internet-facing vms (including bastions), including potentially vulnerable web service.
 
