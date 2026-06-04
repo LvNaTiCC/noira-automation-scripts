@@ -1,0 +1,39 @@
+- name: Make a folder for cloud images
+  ansible.builtin.shell: >
+    mkdir -p /tmp/cloud-images
+
+- name: Download images
+  ansible.builtin.get_url:
+    url: "{{ item.dl_url }}"
+    dest: /tmp/cloud-images/
+  loop: cloud-images
+  register: dl_result
+
+- name: Unzip if zipped
+  ansible.builtin.shell: >
+    unzip dl_result.dest -d /tmp/cloud-images/
+  loop: dl_result
+  when: item.dest.endswith('.zip')
+
+- name: Create a blank vm for template
+  ansible.builtin.shell: |
+    qm create {{ item.vmid }} \
+      --botdisk scsi0 \
+      --cores 2 \
+      --sockets 1 \
+      --cpu cputype=host \
+      --memory 2048 \
+      --name {{ item.name }} \
+      --start 0 \
+      --ostype l26
+  loop: cloud-images
+
+- name: Import the disk and attach the disk
+  ansible.builtin.shell: |
+    qm importdisk {{ item.vmid }} \
+    qm set {{ item.vmid }} --scsi0 local-zfs-pool:vm-{{ item.vmid }}-disk-0 --format {{ item.format }}
+
+- name: Remove images
+  ansible.builtin.shell: >
+    rm -rf /tmp/cloud-images
+  loop: dl_result
