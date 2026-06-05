@@ -19,5 +19,5 @@
 - name: SDN Setup
   hosts: pve_master
   roles:
-    - role: pve-cls-join
+    - role: sdn
       tags: sdn-configuration
