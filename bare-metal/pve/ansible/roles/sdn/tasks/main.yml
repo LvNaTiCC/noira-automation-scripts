@@ -3,7 +3,7 @@
     peers: |
       {% set ip_addresses = [] %}
       {% for i in range(1, (groups['pve_nodes'] | length) + 1) %}
-      {% ip_addresses.append(service_subnet_prefix ~ "." ~ i) %}
+      {% set ip_addresses = ip_addresses + [service_subnet_prefix ~ "." ~ i] %}
       {% endfor %}
       {{ ip_addresses | join(",")}}
 
