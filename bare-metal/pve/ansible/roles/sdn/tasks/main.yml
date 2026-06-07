@@ -22,8 +22,7 @@
       --zone main \
       --tag {{ item.tag }} \
       --vlanaware 1
-  loop:
-    vnets
+  loop: {{ vnets }}
 
 - name: Apply Changes
   ansible.builtin.shell: |
