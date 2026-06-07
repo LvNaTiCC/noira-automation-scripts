@@ -3,3 +3,9 @@
   roles:
     - role: sdn
       tags: sdn-configuration
+
+- name: PVE Gateway Setup
+  hosts: pve_nodes
+  roles:
+    - role: ha-gateway
+      tags: ha-gateway
