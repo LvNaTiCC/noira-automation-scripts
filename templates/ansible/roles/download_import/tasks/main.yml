@@ -15,23 +15,30 @@
   loop: dl_result
   when: item.dest.endswith('.zip')
 
+- name: Recursively find /tmp files older than 2 days
+  ansible.builtin.find:
+    paths: /tmp/cloud-images
+    patterns: '*.img,*.raw,*.qcow2'
+  register: image_files
+
 - name: Create a blank vm for template
   ansible.builtin.shell: |
-    qm create {{ item.vmid }} \
+    qm create {{ 9000 + loop_index }} \
       --botdisk scsi0 \
       --cores 2 \
       --sockets 1 \
       --cpu cputype=host \
       --memory 2048 \
-      --name {{ item.name }} \
+      --name {{ item.path.split('/')[-1] }} \
       --start 0 \
       --ostype l26
-  loop: cloud-images
+  loop: image_files.files
 
 - name: Import the disk and attach the disk
   ansible.builtin.shell: |
-    qm importdisk {{ item.vmid }} \
-    qm set {{ item.vmid }} --scsi0 local-zfs-pool:vm-{{ item.vmid }}-disk-0 --format {{ item.format }}
+    qm importdisk {{ 9000 + loop_index }} {{ item.path }} {{ template_storage }} \
+    qm set {{ 9000 + loop_index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + loop_index }}-disk-0
+  loop: image_files.files
 
 - name: Remove images
   ansible.builtin.shell: >
