@@ -11,3 +11,10 @@ vnets:
 virtual_gateway_if: "vmbr0"
 virtual_gateway_auth_pass: "changeme"
 virtual_gateway_ip: "192.168.255.254"
+mikrotik_chr_image:
+  dl_link: "https://download.mikrotik.com/routeros/7.21.4/chr-7.21.4.img.zip"
+  format: "raw"
+  vmid: 7000
+chr_initial_configuration: |
+  /ip address add address=192.168.1.100/16 interface=ether1
+  /ip route add gateway=192.168.255.254'

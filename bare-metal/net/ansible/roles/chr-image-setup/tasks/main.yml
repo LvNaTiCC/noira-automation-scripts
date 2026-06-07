@@ -1,0 +1,58 @@
+- name: Download images
+  ansible.builtin.get_url:
+    url: mikrotik_chr_image.dl_link
+    dest: /tmp/chr.img.zip
+  register: dl_result
+
+- name: Ensure unzip is installed
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+    update-cache: true
+
+- name: Unzip CHR
+  ansible.builtin.shell: >
+    unzip -o /tmp/chr.img.zip -d /tmp/chr.img
+
+- name: Get CHR image sector size # Assumes img2 is the root, might change
+  ansible.builtin.shell: >
+    fdisk -l /tmp/chr.img | awk '/.img2/ {print $2}'
+  register: sector_size
+
+- name: Get CHR root offset
+  ansible.builtin.shell: >
+    fdisk -l /tmp/chr.img | awk '/Sector size/ {print $4}'
+  register: root_offset
+
+- name: Mount CHR in RW
+  ansible.builtin.shell: >
+    mount -o loop,rw,offset={{ sector_size.stdout|int * root_offset.stdout|int }} chr-7.21.4.img /mnt
+
+- name: Fill correct rw/autorun.scr contents
+  ansible.builtin.copy:
+    dest: /mnt/rw/autorun.scr
+    content: |
+      {{ chr_initial_configuration }}
+
+- name: Umount CHR
+  ansible.builtin.shell: >
+    umount /mnt
+
+- name: Create a blank vm for template
+  ansible.builtin.shell: |
+    qm create 1001 \
+      --cores 4 \
+      --sockets 1 \
+      --scsihw virtio-scsi-pci \
+      --cpu cputype=host \
+      --memory 8096 \
+      --name "chr-virtual-router"
+      --start 0 \
+      --ostype l26
+
+- name: Import the disk and attach the disk
+  tags: template-creation
+  ansible.builtin.shell: |
+    qm importdisk 1001 /tmp/chr.img local-zfs-pool
+    qm set 1001 --scsi0 local-zfs-pool:vm-1001-disk-0,discard=on
+    qm set 1001 --boot 'order=scsi0'
