@@ -38,6 +38,7 @@
       --name "{{ item.path.split('/')[-1] | replace('_', '-') }}" \
       --start 0 \
       --ostype l26
+    qm set {{ 9000 + ansible_loop.index }} --boot 'order=scsi0
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
