@@ -4,7 +4,7 @@
 
 - name: Download images
   ansible.builtin.get_url:
-    url: "{{ item.dl_url }}"
+    url: "{{ item.dl_link }}"
     dest: /tmp/cloud-images/
   loop: "{{ cloud_images }}"
   register: dl_result
