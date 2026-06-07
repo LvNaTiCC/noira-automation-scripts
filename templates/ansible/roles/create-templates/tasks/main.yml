@@ -84,7 +84,7 @@
   ansible.builtin.shell: |
     {{ template_clone_commands }}
 
-# - name: Remove images
-#   ansible.builtin.shell: >
-#     rm -rf /tmp/cloud-images
+- name: Remove images
+  ansible.builtin.shell: >
+    rm -rf /tmp/cloud-images
 
