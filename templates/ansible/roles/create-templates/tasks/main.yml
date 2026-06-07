@@ -1,8 +1,10 @@
 - name: Make a folder for cloud images
+  tags: template-creation
   ansible.builtin.shell: >
     mkdir -p /tmp/cloud-images
 
 - name: Download images
+  tags: template-creation
   ansible.builtin.get_url:
     url: "{{ item.dl_link }}"
     dest: /tmp/cloud-images/{{ item.dl_link.split('/')[-1] }}
@@ -10,24 +12,28 @@
   register: dl_result
 
 - name: Unsure unzip is installed
+  tags: template-creation
   ansible.builtin.apt:
     name: unzip
     state: present
     update-cache: true
 
 - name: Unzip if zipped
+  tags: template-creation
   ansible.builtin.shell: >
     unzip -o {{ item.dest }} -d /tmp/cloud-images/
   loop: "{{ dl_result.results }}"
   when: item.dest.endswith('.zip')
 
 - name: Find all image files
+  tags: template-creation
   ansible.builtin.find:
     paths: /tmp/cloud-images
     patterns: '*.img,*.raw,*.qcow2'
   register: image_files
 
 - name: Create a blank vm for template
+  tags: template-creation
   ansible.builtin.shell: |
     qm create {{ 9000 + ansible_loop.index }} \
       --cores 2 \
@@ -43,6 +49,7 @@
     extended: true
 
 - name: Import the disk and attach the disk
+  tags: template-creation
   ansible.builtin.shell: |
     qm importdisk {{ 9000 + ansible_loop.index }} {{ item.path }} {{ template_storage }}
     qm set {{ 9000 + ansible_loop.index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + ansible_loop.index }}-disk-0,discard=on
@@ -51,13 +58,33 @@
   loop_control:
     extended: true
 
-- name: Import the disk and attach the disk
+- name: Convert vms to templates
+  tags: template-creation
   ansible.builtin.shell: |
     qm template {{ 9000 + ansible_loop.index }}
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
 
-- name: Remove images
-  ansible.builtin.shell: >
-    rm -rf /tmp/cloud-images
+- name: Clone to all nodes
+  ansible.builtin.set_fact:
+    template_clone_commands: |
+      {% for node_index in range(2, (groups['pve_nodes'] | length) + 1) %}
+        {% for img_index in range(1, (cloud_images | length) + 1) %}
+      TEMPLATE_VMID={{ 9000 + img_index }}
+      TEMPLATE_NAME=$(qm config $TEMPLATE_VMID | grep '^name:' | awk '{print $2}')
+      NEW_TEMPLATE_VMID={{ 9000 + 100 * node_index + img_index }}
+      qm clone $TEMPLATE_VMID $NEW_TEMPLATE_VMID --storage {{ template_storage }} --full true --name $TEMPLATE_NAME
+      qm migrate $NEW_TEMPLATE_VMID {{"pve0" ~ node_index }} --with-local-disks
+      ssh -o StrictHostKeyChecking=no root@{{"pve0" ~ node_index }} qm template $NEW_TEMPLATE_VMID 
+        {% endfor %}
+      {% endfor %}
+
+- name: Perform clone operations
+  ansible.builtin.shell: |
+    {{ template_clone_commands }}
+
+# - name: Remove images
+#   ansible.builtin.shell: >
+#     rm -rf /tmp/cloud-images
+

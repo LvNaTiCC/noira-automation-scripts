@@ -1,4 +1,4 @@
-- name: Download, install and convert templates
-  hosts: pve_nodes
+- name: Download, install and convert templates, set up replication
+  hosts: pve_master
   roles:
-    - role: download_import
+    - create-templates
