@@ -17,7 +17,7 @@
 
 - name: Unzip if zipped
   ansible.builtin.shell: >
-    unzip dl_result.dest -d /tmp/cloud-images/{{ item.dest }}
+    unzip {{ item.dest }} -d /tmp/cloud-images/
   loop: "{{ dl_result.results }}"
   when: item.dest.endswith('.zip')
 
