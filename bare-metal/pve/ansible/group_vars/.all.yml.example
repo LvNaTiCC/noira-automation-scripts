@@ -3,7 +3,7 @@ authorized_keys: |
   ssh-ed25519 <key-2> usr@server
 pve_root_password: ch4ngeme_r3a11y_.
 service_subnet_prefix: 192.168.1
-service_subnet_mask: 255.255.255.0
+service_subnet_mask: 255.255.0.0
 blockdevs:
   - /dev/nvme0n1
   - /dev/nvme1n1
