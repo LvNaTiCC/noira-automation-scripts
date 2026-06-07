@@ -18,7 +18,7 @@
 - name: Update a specific setting
   delegate_to: localhost
   ansible.builtin.lineinfile:
-    path: "api-token"
+    path: "api-vars"
     regexp: '^api-token='
     line: 'api-token={{ token_generation_result.stdout }}'
     state: present
@@ -26,7 +26,7 @@
 - name: Update a specific setting
   delegate_to: localhost
   ansible.builtin.lineinfile:
-    path: "api-user"
+    path: "api-vars"
     regexp: '^api-user='
-    line: 'api-user=maid'
+    line: "api-user={{ automation_user_pass }}"
     state: present
