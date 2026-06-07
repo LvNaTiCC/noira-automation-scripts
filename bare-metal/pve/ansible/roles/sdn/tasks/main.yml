@@ -5,14 +5,14 @@
       {% for i in range(1, (groups['pve_nodes'] | length) + 1) %}
       {% set ns.ip_addresses = ns.ip_addresses + [service_subnet_prefix ~ "." ~ i] %}
       {% endfor %}
-      {{ ns.ip_addresses | join(",") | trim}}
+      {{ ns.ip_addresses | join(",")}}
 
 - name: Create VXVLAN
   ansible.builtin.shell: |
     pvesh create /cluster/sdn/zones \
       --zone main \
       --type vxlan \
-      --peers "{{ peers }}" \
+      --peers "{{ peers | trim }}" \
       --mtu 1350
 
 - name: Create VNets
