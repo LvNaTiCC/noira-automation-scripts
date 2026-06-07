@@ -15,9 +15,3 @@
   roles:
     - role: pve-cls-join
       tags: cluster-setup,base_deployment
-
-- name: SDN Setup
-  hosts: pve_master
-  roles:
-    - role: sdn
-      tags: sdn-configuration

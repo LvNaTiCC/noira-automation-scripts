@@ -1,0 +1,5 @@
+- name: SDN Setup
+  hosts: pve_master
+  roles:
+    - role: sdn
+      tags: sdn-configuration

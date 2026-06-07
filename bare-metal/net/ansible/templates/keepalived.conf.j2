@@ -1,0 +1,18 @@
+global_defs {
+    router_id lb-gw-{{ inventory_hostname }}
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface {{ virtual_gateway_if }}
+    virtual_router_id 70
+    priority {{ 200 - groups['pve_nodes'].index(inventory_hostname) * 10 }}
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass {{ virtual_gateway_auth_pass }}
+    }
+    virtual_ipaddress {
+        {{ virtual_gateway_ip }}
+    }
+}

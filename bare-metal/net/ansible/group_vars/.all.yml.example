@@ -1,0 +1,10 @@
+
+service_subnet_prefix: 192.168.1
+service_subnet_mask: 255.255.0.0
+vlan_id: 1000
+service_subnet_mtu: 1400
+vnets:
+  - name: general
+    tag: 100
+  - name: internal
+    tag: 900
