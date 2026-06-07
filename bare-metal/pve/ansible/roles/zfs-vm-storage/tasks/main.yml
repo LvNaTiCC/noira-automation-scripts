@@ -11,4 +11,4 @@
 - name: Create basic non-redundant pool for vm disks and add it to PVE
   ansible.builtin.shell: |
     zpool create local-zfs-pool -f {{ zfs_pool_settings }} mirror {{ all_zfs_partitions }}
-    pvesm add zfspool local-zvs-pool -pool local-zfs-pool
+    pvesm add zfspool local-zfs-pool -pool local-zfs-pool
