@@ -21,3 +21,4 @@ vnets:
   - name: internal
     tag: 900
 api_automation_user: "maid"
+automation_user_pass: "maidpass"

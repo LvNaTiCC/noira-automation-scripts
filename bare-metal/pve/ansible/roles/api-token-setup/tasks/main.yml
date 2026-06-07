@@ -1,32 +1,32 @@
 - name: Create an automation user
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     pveum user add {{ api_automation_user }}@pve --password "{{ automation_user_pass }}"
     pveum acl modify / --user {{ api_automation_user }}@pve --roles PVEAdmin
     
 - name: Generate token for automation user
   ansible.builtin.shell: >
-    pveum user token add {{ api_automation_user }}@pam automation --privsep 0 | awk '/value/ && NR > 2 {print $4}'
+    pveum user token add {{ api_automation_user }}@pve automation --privsep 0 | awk '/value/ && NR > 2 {print $4}'
   register: token_generation_result
 
 - name: Ensure the global data file exists
   delegate_to: localhost
   ansible.builtin.file:
-    path: "credentials"
+    path: "{{ lookup('env', 'PWD') }}/credentials.yml"
     state: touch
     mode: '0644'
 
 - name: Update a specific setting
   delegate_to: localhost
   ansible.builtin.lineinfile:
-    path: "api-vars"
-    regexp: '^api-token='
-    line: 'api-token={{ token_generation_result.stdout }}'
+    path: "{{ lookup('env', 'PWD') }}/credentials.yml"
+    regexp: '^api-token: '
+    line: 'api-token: {{ token_generation_result.stdout }}'
     state: present
 
 - name: Update a specific setting
   delegate_to: localhost
   ansible.builtin.lineinfile:
-    path: "api-vars"
-    regexp: '^api-user='
-    line: "api-user={{ automation_user_pass }}"
+    path: "{{ lookup('env', 'PWD') }}/credentials.yml"
+    regexp: '^api-user: '
+    line: "api-user: {{ automation_user_pass }}"
     state: present
