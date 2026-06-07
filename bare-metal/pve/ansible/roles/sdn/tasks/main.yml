@@ -1,9 +1,10 @@
 - name: Set /etc/interface directive for sdn support
-  delegate_to: pve_nodes
+  delegate_to: "{{ item }}"
   ansible.builtin.lineinfile:
     path: /etc/network/interfaces
     line: "source /etc/network/interfaces.d/sdn"
     state: present
+  loop: "{{ groups['pve_nodes'] }}"
 
 - name: Set peers
   ansible.builtin.set_fact:
