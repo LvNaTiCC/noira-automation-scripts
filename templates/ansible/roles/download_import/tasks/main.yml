@@ -30,7 +30,7 @@
 - name: Create a blank vm for template
   ansible.builtin.shell: |
     qm create {{ 9000 + ansible_loop.index }} \
-      --botdisk scsi0 \
+      --disk scsi0 \
       --cores 2 \
       --sockets 1 \
       --cpu cputype=host \
