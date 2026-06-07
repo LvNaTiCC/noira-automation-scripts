@@ -9,6 +9,12 @@
   loop: "{{ cloud_images }}"
   register: dl_result
 
+- name: Unsure unzip is installed
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+    update-cache: true
+
 - name: Unzip if zipped
   ansible.builtin.shell: >
     unzip dl_result.dest -d /tmp/cloud-images/
