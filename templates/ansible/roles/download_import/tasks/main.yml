@@ -32,11 +32,13 @@
     qm create {{ 9000 + ansible_loop.index }} \
       --cores 2 \
       --sockets 1 \
+      --scsihw virtio-scsi-pci \
       --cpu cputype=host \
       --memory 2048 \
       --name "{{ item.path.split('/')[-1].split('.')[0] | lower }}" \
       --start 0 \
       --ostype l26
+    qm set {{ 9000 + ansible_loop.index }} --boot 'order=scsi0
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
