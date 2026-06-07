@@ -5,13 +5,13 @@
 - name: Download images
   ansible.builtin.get_url:
     url: "{{ item.dl_link }}"
-    dest: /tmp/cloud-images/
+    dest: /tmp/cloud-images/"{{ item.dl_link.split('/')[-1] }}"
   loop: "{{ cloud_images }}"
   register: dl_result
 
 - name: Unzip if zipped
   ansible.builtin.shell: >
-    unzip dl_result.dest -d /tmp/cloud-images/"{{ item.dl_link.split('/')[-1] }}"
+    unzip dl_result.dest -d /tmp/cloud-images/
   loop: "{{ dl_result }}"
   when: item.dest.endswith('.zip')
 
