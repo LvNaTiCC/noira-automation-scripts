@@ -17,7 +17,7 @@
 
 - name: Unzip if zipped
   ansible.builtin.shell: >
-    unzip {{ item.dest }} -d /tmp/cloud-images/
+    unzip -o {{ item.dest }} -d /tmp/cloud-images/
   loop: "{{ dl_result.results }}"
   when: item.dest.endswith('.zip')
 
@@ -38,7 +38,6 @@
       --name "{{ item.path.split('/')[-1] | replace('_', '-') }}" \
       --start 0 \
       --ostype l26
-    qm set {{ 9000 + ansible_loop.index }} --boot 'order=scsi0
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
@@ -46,7 +45,7 @@
 - name: Import the disk and attach the disk
   ansible.builtin.shell: |
     qm importdisk {{ 9000 + ansible_loop.index }} {{ item.path }} {{ template_storage }}
-    qm set {{ 9000 + ansible_loop.index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + ansible_loop.index }}-disk-0
+    qm set {{ 9000 + ansible_loop.index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + ansible_loop.index }}-disk-0,discard=on
     qm set {{ 9000 + ansible_loop.index }} --boot 'order=scsi0'
   loop: "{{ image_files.files }}"
   loop_control:
