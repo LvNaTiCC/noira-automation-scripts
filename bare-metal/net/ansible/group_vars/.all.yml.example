@@ -8,3 +8,6 @@ vnets:
     tag: 100
   - name: internal
     tag: 900
+virtual_gateway_if: "vmbr0"
+virtual_gateway_auth_pass: "changeme"
+virtual_gateway_ip: "192.168.255.254"
