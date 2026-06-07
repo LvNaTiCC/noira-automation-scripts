@@ -34,7 +34,7 @@
       --sockets 1 \
       --cpu cputype=host \
       --memory 2048 \
-      --name {{ item.path.split('/')[-1] }} \
+      --name "{{ item.path.split('/')[-1] }}" \
       --start 0 \
       --ostype l26
   loop: "{{ image_files.files }}"
