@@ -29,7 +29,7 @@
 
 - name: Create a blank vm for template
   ansible.builtin.shell: |
-    qm create {{ 9000 + loop_index }} \
+    qm create {{ 9000 + ansible_loop.index }} \
       --botdisk scsi0 \
       --cores 2 \
       --sockets 1 \
@@ -39,18 +39,24 @@
       --start 0 \
       --ostype l26
   loop: "{{ image_files.files }}"
+  loop_control:
+    extended: true
 
 - name: Import the disk and attach the disk
   ansible.builtin.shell: |
-    qm importdisk {{ 9000 + loop_index }} {{ item.path }} {{ template_storage }} \
-    qm set {{ 9000 + loop_index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + loop_index }}-disk-0
+    qm importdisk {{ 9000 + ansible_loop.index }} {{ item.path }} {{ template_storage }} \
+    qm set {{ 9000 + ansible_loop.index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + ansible_loop.index }}-disk-0
   loop: "{{ image_files.files }}"
+  loop_control:
+    extended: true
 
 
 - name: Import the disk and attach the disk
   ansible.builtin.shell: |
-    qm template {{ 9000 + loop_index }}
+    qm template {{ 9000 + ansible_loop.index }}
   loop: "{{ image_files.files }}"
+  loop_control:
+    extended: true
 
 - name: Remove images
   ansible.builtin.shell: >
