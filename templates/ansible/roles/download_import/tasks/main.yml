@@ -35,7 +35,7 @@
       --scsihw virtio-scsi-pci \
       --cpu cputype=host \
       --memory 2048 \
-      --name "{{ item.path.split('/')[-1].split('.')[0] | lower }}" \
+      --name "{{ item.path.split('/')[-1][:63] }}" \
       --start 0 \
       --ostype l26
     qm set {{ 9000 + ansible_loop.index }} --boot 'order=scsi0
