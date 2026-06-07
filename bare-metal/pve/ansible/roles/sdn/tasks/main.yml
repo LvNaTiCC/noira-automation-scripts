@@ -1,11 +1,11 @@
 - name: Set peers
   ansible.builtin.set_fact:
     peers: |
-      {% set ip_addresses = [] %}
+      {% set ns = namespace(ip_addresses = []) %}
       {% for i in range(1, (groups['pve_nodes'] | length) + 1) %}
-      {% set ip_addresses = ip_addresses + [service_subnet_prefix ~ "." ~ i] %}
+      {% set ns.ip_addresses = ns.ip_addresses + [service_subnet_prefix ~ "." ~ i] %}
       {% endfor %}
-      {{ ip_addresses | join(",")}}
+      {{ ns.ip_addresses | join(",")}}
 
 - name: Create VXVLAN
   ansible.builtin.shell: |
