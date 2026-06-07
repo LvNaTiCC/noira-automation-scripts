@@ -1,3 +1,9 @@
+- name: Set /etc/interface directive for sdn support
+  ansible.builtin.lineinfile:
+    path: /etc/interfaces
+    line: "source /etc/network/interfaces.d/sdn"
+    state: present
+
 - name: Set peers
   ansible.builtin.set_fact:
     peers: |
