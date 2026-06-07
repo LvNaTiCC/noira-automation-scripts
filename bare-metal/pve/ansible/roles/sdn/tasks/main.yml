@@ -9,18 +9,18 @@
 
 - name: Create VXVLAN
   ansible.builtin.shell: |
-    pvesh create /cluster/sdn/zones
-      --zone main
-      --type vxlan
-      --peers "{{ peers }}"
+    pvesh create /cluster/sdn/zones \
+      --zone main \
+      --type vxlan \
+      --peers "{{ peers }}" \
       --mtu 1350
 
 - name: Create VNets
   ansible.builtin.shell: |
-    pvesh create /cluster/sdn/vnets
-      --vnet {{ item.name }}
-      --zone main
-      --tag {{ item.tag }}
+    pvesh create /cluster/sdn/vnets \
+      --vnet {{ item.name }} \
+      --zone main \
+      --tag {{ item.tag }} \
       --vlanaware 1
   loop:
     vnets
