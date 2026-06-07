@@ -51,3 +51,4 @@ inventory.ini
 hosts.ini
 all.yml
 ansible.cfg
+credentials

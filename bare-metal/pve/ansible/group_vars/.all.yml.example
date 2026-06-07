@@ -20,3 +20,4 @@ vnets:
     tag: 100
   - name: internal
     tag: 900
+api_automation_user: "maid"
