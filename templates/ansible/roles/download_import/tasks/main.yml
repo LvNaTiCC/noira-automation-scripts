@@ -51,7 +51,6 @@
   loop_control:
     extended: true
 
-
 - name: Import the disk and attach the disk
   ansible.builtin.shell: |
     qm template {{ 9000 + ansible_loop.index }}
