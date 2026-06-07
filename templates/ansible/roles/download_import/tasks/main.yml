@@ -44,7 +44,7 @@
 - name: Import the disk and attach the disk
   ansible.builtin.shell: |
     qm importdisk {{ 9000 + ansible_loop.index }} {{ item.path }} {{ template_storage }} \
-    qm set {{ 9000 + ansible_loop.index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + ansible_loop.index }}-disk-0
+    qm set {{ 9000 + ansible_loop.index }} --target-disk scsi0 {{ template_storage }}:vm-{{ 9000 + ansible_loop.index }}-disk-0
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
