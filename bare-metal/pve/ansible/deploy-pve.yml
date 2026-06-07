@@ -16,3 +16,4 @@
     - role: pve-cls-join
       tags: cluster-setup,base_deployment
     - role: api-token-setup
+      tags: api-token-setup
