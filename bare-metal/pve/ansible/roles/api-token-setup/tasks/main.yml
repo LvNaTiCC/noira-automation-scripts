@@ -28,5 +28,5 @@
   ansible.builtin.lineinfile:
     path: "{{ lookup('env', 'PWD') }}/credentials.yml"
     regexp: '^api-user: '
-    line: "api-user: {{ automation_user_pass }}"
+    line: "api-user: {{ api_automation_user }}"
     state: present
