@@ -1,4 +1,5 @@
 - name: Set /etc/interface directive for sdn support
+  delegate_to: pve_nodes
   ansible.builtin.lineinfile:
     path: /etc/network/interfaces
     line: "source /etc/network/interfaces.d/sdn"
