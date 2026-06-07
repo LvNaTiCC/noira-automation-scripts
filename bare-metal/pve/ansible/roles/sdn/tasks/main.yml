@@ -1,6 +1,6 @@
 - name: Set /etc/interface directive for sdn support
   ansible.builtin.lineinfile:
-    path: /etc/interfaces
+    path: /etc/network/interfaces
     line: "source /etc/network/interfaces.d/sdn"
     state: present
 
