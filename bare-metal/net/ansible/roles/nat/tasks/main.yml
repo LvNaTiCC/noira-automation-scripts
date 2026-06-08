@@ -1,0 +1,15 @@
+- name: Enable ipv4 forwarding
+  lineinfile:
+    path: /etc/sysctl.conf
+    regexp: "^net.ipv4.ip_forward ="
+    line: "net.ipv4.ip_forward = 1"
+
+- name: Apply Changes
+  ansible.builtin.shell: >
+    sudo sysctl -p
+
+- name: Add iptables NAT rules
+  ansible.builtin.shell: |
+    iptables -t nat -A POSTROUTING -s 192.168.0.0/16 -o eno1 -j MASQUERADE
+    iptables -A FORWARD -i vmbr0 -o eno1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+    iptables -A FORWARD -i eno1 -o vmbr0 -j ACCEPT
