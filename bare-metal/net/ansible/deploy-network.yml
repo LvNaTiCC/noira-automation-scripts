@@ -13,5 +13,5 @@
 - name: Deploy CHR router
   hosts: pve_master
   roles:
-    - role: mikrotik-chr-image-setup
+    - role: chr-image-setup
     - role: chr-vm-config

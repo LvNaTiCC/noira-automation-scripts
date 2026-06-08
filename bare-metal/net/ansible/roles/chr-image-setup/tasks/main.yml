@@ -1,6 +1,6 @@
 - name: Download images
   ansible.builtin.get_url:
-    url: mikrotik_chr_image.dl_link
+    url: "{{ mikrotik_chr_image.dl_link }}"
     dest: /tmp/chr.img.zip
   register: dl_result
 
@@ -10,23 +10,38 @@
     state: present
     update-cache: true
 
+- name: Make folder for unzipping
+  ansible.builtin.shell: >
+    mkdir -p /tmp/chr
+
 - name: Unzip CHR
   ansible.builtin.shell: >
-    unzip -o /tmp/chr.img.zip -d /tmp/chr.img
+    unzip -o /tmp/chr.img.zip -d /tmp/chr
+
+- name: Find all image files
+  tags: template-creation
+  ansible.builtin.find:
+    paths: /tmp/chr
+    patterns: '*.img,*.raw,*.qcow2'
+  register: image_files
+
+- name: Get chr image path
+  ansible.builtin.set_fact:
+    chr_image_path: "{{ image_files.files[0].path }}"
 
 - name: Get CHR image sector size # Assumes img2 is the root, might change
   ansible.builtin.shell: >
-    fdisk -l /tmp/chr.img | awk '/.img2/ {print $2}'
+    fdisk -l {{ chr_image_path }} | awk '/.img2/ {print $2}'
   register: sector_size
 
 - name: Get CHR root offset
   ansible.builtin.shell: >
-    fdisk -l /tmp/chr.img | awk '/Sector size/ {print $4}'
+    fdisk -l {{ chr_image_path }} | awk '/Sector size/ {print $4}'
   register: root_offset
 
 - name: Mount CHR in RW
   ansible.builtin.shell: >
-    mount -o loop,rw,offset={{ sector_size.stdout|int * root_offset.stdout|int }} chr-7.21.4.img /mnt
+    mount -o loop,rw,offset={{ sector_size.stdout|int * root_offset.stdout|int }} {{ chr_image_path }} /mnt
 
 - name: Fill correct rw/autorun.scr contents
   ansible.builtin.copy:
@@ -38,7 +53,7 @@
   ansible.builtin.shell: >
     umount /mnt
 
-- name: Create a blank vm for template
+- name: Create a blank vm for router
   ansible.builtin.shell: |
     qm create 1001 \
       --cores 4 \
@@ -46,13 +61,13 @@
       --scsihw virtio-scsi-pci \
       --cpu cputype=host \
       --memory 8096 \
-      --name "chr-virtual-router"
+      --name "chr-virtual-router" \
       --start 0 \
       --ostype l26
 
 - name: Import the disk and attach the disk
   tags: template-creation
   ansible.builtin.shell: |
-    qm importdisk 1001 /tmp/chr.img local-zfs-pool
+    qm importdisk 1001 {{ chr_image_path }} local-zfs-pool
     qm set 1001 --scsi0 local-zfs-pool:vm-1001-disk-0,discard=on
     qm set 1001 --boot 'order=scsi0'

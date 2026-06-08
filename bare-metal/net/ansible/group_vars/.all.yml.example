@@ -17,4 +17,7 @@ mikrotik_chr_image:
   vmid: 7000
 chr_initial_configuration: |
   /ip address add address=192.168.1.100/16 interface=ether1
-  /ip route add gateway=192.168.255.254'
+  /ip route add gateway=192.168.255.254
+  /interface ethernet set [find name=ether1] mtu=1400
+  /interface ethernet set [find name=ether2] mtu=1350
+  /interface ethernet set [find name=ether3] mtu=1350
