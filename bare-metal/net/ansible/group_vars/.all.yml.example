@@ -1,6 +1,7 @@
 
 service_subnet_prefix: 192.168.1
 service_subnet_mask: 255.255.0.0
+service_router_ip: 192.168.1.100/16
 vlan_id: 1000
 service_subnet_mtu: 1400
 vnets:
@@ -36,8 +37,8 @@ mikrotik_chr_image:
   format: "raw"
   vmid: 7000
 chr_initial_configuration: |
-  /ip address add address=192.168.1.100/16 interface=ether1
-  /ip route add gateway=192.168.255.254
+  /ip address add address={{ service_router_ip }} interface=ether1
+  /ip route add gateway={{ virtual_gateway_ip }}
   /interface ethernet set [find name=ether1] mtu=1400
   /interface ethernet set [find name=ether2] mtu=1350
-  /interface ethernet set [find name=ether3] mtu=1350
+  /interface ethernet set [find name=ether3] mtu=1350 

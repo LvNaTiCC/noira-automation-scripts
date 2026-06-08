@@ -1,0 +1,58 @@
+- name: Find out vnets bridge interfaces mac addresses
+  ansible.builtin.shell: >
+    ip a | awk '/ {{ item.name }}:/{getline; print $2}'
+  loop: "{{ vnets }}"
+  register: vnet_macs
+
+- name: Find out vmbr0 mac address
+  ansible.builtin.shell: >
+    ip a | awk '/ vmbr0:/{getline; print $2}'
+  register: vmbr0_mac
+
+- name: Build configuration for interface ip addresses
+  ansible.builtin.set_fact:
+    cfg_ip_address_assignments: |
+      {% for vnet in vnets %}
+        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout %}
+      interface set {{ chr_if }} mtu=1350
+      ip address add address={{ vnet.gateway }} interface={{ chr_if }}
+      ip pool ranges={{ vnet.ranges }} name={{ vnet.name }}
+      {% endfor %}
+
+- name: Build configuration for interface dhcp server
+  ansible.builtin.set_fact:
+    cfg_dhcp_server: |
+      {% for vnet in vnets %}
+        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout %}
+      ip pool ranges={{ vnet.ranges }} name={{ vnet.name }}
+      ip dhcp-server network add address={{ vnet.cidr }} dns-server={{ vnet.gateway }} gateway={{ vnet.gateway }}
+      ip dhcp-server add name={{ vnet.name }} interface=[/interface get [find mac-address={{ chr_if_mac }}] authoritative=yes address-pool={{ vnet.name }}
+      {% endfor %}
+
+- name: Build configuration for src-nat
+  ansible.builtin.set_fact:
+    cfg_src_nat: |
+      {% for vnet in vnets %}
+        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout %}
+        {% if vnet.allow_wan %}
+      ip firewall nat add chain=srcnat in-interface=[find mac-address={{ chr_if_mac }}] out-interface=[/interface get [find mac-address={{ vmbr0_mac.stdout }}] name] action=masquerade
+        {% endif %}
+      {% endfor %}
+
+- name: Build configuration for inter-subnet routing
+  ansible.builtin.set_fact:
+    cfg_inter_subnet_firewall: |
+      {% for vnet in vnets %}
+        {% for allowed_route in vnet.allow_route}
+      add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ vnets[allowed_route].gateway }}/{{ vnets[allowed_route].mask }}
+      add chain=forward action=accept src-address={{ vnets[allowed_route].cidr }} dst-address={{ vnet.gateway }}/{{vnet.mask}}
+        {% endfor %}
+      {% endfor %}
+
+- name: Print configuration strings
+  ansible.builtin.debug:
+    msg:
+      - "{{ cfg_inter_subnet_firewall }}"
+      - "{{ cfg_src_nat }}"
+      - "{{ cfg_dhcp_server }}"
+      - "{{ cfg_ip_address_assignments }}"
