@@ -1,0 +1,14 @@
+[pve_master]
+pve01.noira.moe ansible_host=100.100.100.1  ansible_password=pa$$w0rd
+
+[pve_slaves]
+pve02.noira.moe ansible_host=100.100.100.2  ansible_password=pa$$w0rd
+pve03.noira.moe ansible_host=100.100.100.3   ansible_password=pa$$w0rd
+
+[pve_nodes:children]
+pve_master
+pve_slaves
+
+[pve_nodes:vars]
+ansible_user=root
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
