@@ -1,3 +1,8 @@
+- name: Touch a /etc/sysctl.conf
+  ansible.builtin.file:
+    path: /etc/sysctl.conf
+    state: touch
+
 - name: Enable ipv4 forwarding
   lineinfile:
     path: /etc/sysctl.conf
@@ -6,7 +11,7 @@
 
 - name: Apply Changes
   ansible.builtin.shell: >
-    sudo sysctl -p
+    sysctl -p
 
 - name: Add iptables NAT rules
   ansible.builtin.shell: |

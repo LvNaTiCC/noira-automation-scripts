@@ -1,7 +1,7 @@
 - name: Build commands for all ports for CHR router
   ansible.builtin.set_fact:
     port_if_add_commands: |
-      qm set 1001 -net1 virtio,bridge=vmbr0
+      qm set 1001 -net1 virtio={{ vmbr_chr_if_mac }},bridge=vmbr0
       {% for vnet in vnets %}
       qm set 1001 -net{{ loop.index + 1 }} virtio,bridge={{ vnet.name }}
       {% endfor %}

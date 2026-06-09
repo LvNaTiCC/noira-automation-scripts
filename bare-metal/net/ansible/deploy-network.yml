@@ -14,5 +14,10 @@
   hosts: pve_master
   roles:
     - role: chr-image-setup
+      tags: chr-image-setup
     - role: chr-vm-config
+      tags: chr-vm-config
     - role: nat
+      tags: chr-nat-setup
+    - role: chr-network-setup
+      tags: chr-network-setup

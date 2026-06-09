@@ -29,9 +29,7 @@
       --vnet {{ item.name }} \
       --zone main \
       --tag {{ item.tag }} \
-      --vlanaware 1 \
-      --subnet {{ item.cidr }} \
-      --gateway {{ item.gateway-ip }}
+      --vlanaware 1
   loop: "{{ vnets }}"
 
 - name: Apply Changes

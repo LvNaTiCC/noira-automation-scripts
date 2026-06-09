@@ -1,58 +1,89 @@
 - name: Find out vnets bridge interfaces mac addresses
   ansible.builtin.shell: >
-    ip a | awk '/ {{ item.name }}:/{getline; print $2}'
+    qm config 1001 | awk '/net{{ vnet_index + 2 }}/ {print $2}' | sed 's/.*=\(.*\),.*/\1/'
   loop: "{{ vnets }}"
   register: vnet_macs
+  loop_control:
+    index_var: vnet_index
 
 - name: Find out vmbr0 mac address
   ansible.builtin.shell: >
-    ip a | awk '/ vmbr0:/{getline; print $2}'
+    qm config 1001 | awk '/net1/ {print $2}' | sed 's/.*=\(.*\),.*/\1/'
   register: vmbr0_mac
 
-- name: Build configuration for interface ip addresses
+- name: Build configuration for mtu and interfaces ip addresses
   ansible.builtin.set_fact:
     cfg_ip_address_assignments: |
+      #jinja2: lstrip_blocks: True
       {% for vnet in vnets %}
-        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout %}
-      interface set {{ chr_if }} mtu=1350
-      ip address add address={{ vnet.gateway }} interface={{ chr_if }}
-      ip pool ranges={{ vnet.ranges }} name={{ vnet.name }}
+        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout | upper %}
+      interface set [/interface get [find mac-address="{{ chr_if_mac }}"] name] mtu=1340
+      ip address add address={{ vnet.gateway }}/{{ vnet.mask }} interface=[/interface get [find mac-address="{{ chr_if_mac }}"] name]
+      {% endfor %}
+
+- name: Build configuration for ip interfaces address pools
+  ansible.builtin.set_fact:
+    cfg_ip_address_pools: |
+      #jinja2: lstrip_blocks: True
+      {% for vnet in vnets %}
+      ip pool add ranges={{ vnet.dhcp_ranges }} name={{ vnet.name }}
       {% endfor %}
 
 - name: Build configuration for interface dhcp server
   ansible.builtin.set_fact:
     cfg_dhcp_server: |
+      #jinja2: lstrip_blocks: True
       {% for vnet in vnets %}
-        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout %}
-      ip pool ranges={{ vnet.ranges }} name={{ vnet.name }}
+        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout | upper %}
       ip dhcp-server network add address={{ vnet.cidr }} dns-server={{ vnet.gateway }} gateway={{ vnet.gateway }}
-      ip dhcp-server add name={{ vnet.name }} interface=[/interface get [find mac-address={{ chr_if_mac }}] authoritative=yes address-pool={{ vnet.name }}
+      ip dhcp-server add name={{ vnet.name }} interface=[/interface get [find mac-address="{{ chr_if_mac }}"] name] authoritative=yes address-pool={{ vnet.name }}
       {% endfor %}
 
 - name: Build configuration for src-nat
   ansible.builtin.set_fact:
     cfg_src_nat: |
+      #jinja2: lstrip_blocks: True
       {% for vnet in vnets %}
-        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout %}
+        {% set chr_if_mac = vnet_macs.results[loop.index0].stdout | upper %}
         {% if vnet.allow_wan %}
-      ip firewall nat add chain=srcnat in-interface=[find mac-address={{ chr_if_mac }}] out-interface=[/interface get [find mac-address={{ vmbr0_mac.stdout }}] name] action=masquerade
+      ip firewall nat add chain=srcnat in-interface=[/interface get [find mac-address="{{ chr_if_mac }}"] name] out-interface=[/interface get [find mac-address="{{ vmbr0_mac.stdout | upper }}"] name] action=masquerade
         {% endif %}
       {% endfor %}
 
 - name: Build configuration for inter-subnet routing
   ansible.builtin.set_fact:
     cfg_inter_subnet_firewall: |
-      {% for vnet in vnets %}
-        {% for allowed_route in vnet.allow_route}
-      add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ vnets[allowed_route].gateway }}/{{ vnets[allowed_route].mask }}
-      add chain=forward action=accept src-address={{ vnets[allowed_route].cidr }} dst-address={{ vnet.gateway }}/{{vnet.mask}}
+      #jinja2: lstrip_blocks: True
+      {% for vnet in vnets if vnet.allowed_routes is not none %}
+        {% for allowed_route in vnet.allowed_routes %}
+          {% for allow_route_vnet in vnets %}
+            {% if allow_route_vnet.name == allowed_route %}
+      ip firewall filter add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ allow_route_vnet.gateway }} connection-state=new protocol=tcp comment="TCP Rule for VNets {{ vnet.name }} -> {{ allow_route_vnet.name }}"
+      ip firewall filter add chain=forward action=accept src-address={{ allow_route_vnet.cidr }} dst-address={{ vnet.gateway }} connection-state=new protocol=tcp comment="TCP Rule for VNets {{ allow_route_vnet.name }} -> {{ vnet.name }}"
+      ip firewall filter add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ allow_route_vnet.gateway }} connection-state=new protocol=udp comment="UDP Rule for VNets {{ vnet.name }} -> {{ allow_route_vnet.name }}"
+      ip firewall filter add chain=forward action=accept src-address={{ allow_route_vnet.cidr }} dst-address={{ vnet.gateway }} connection-state=new protocol=udp comment="UDP Rule for VNets {{ allow_route_vnet.name }} -> {{ vnet.name }}"
+            {% endif %}
+          {% endfor %}
         {% endfor %}
       {% endfor %}
 
-- name: Print configuration strings
-  ansible.builtin.debug:
-    msg:
-      - "{{ cfg_inter_subnet_firewall }}"
-      - "{{ cfg_src_nat }}"
-      - "{{ cfg_dhcp_server }}"
-      - "{{ cfg_ip_address_assignments }}"
+- name: Execute all configuration on CHR
+  ansible.builtin.shell: |
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ vmbr0_chr_ip }} << 'EOF'
+    {{ item }}
+    EOF
+  loop:
+    - "{{ cfg_ip_address_assignments }}"
+    - "{{ cfg_ip_address_pools }}"
+    - "{{ cfg_dhcp_server }}"
+    - "{{ cfg_src_nat }}"
+    - "{{ cfg_inter_subnet_firewall }}"
+
+- name: Set CHR admin password
+  ansible.builtin.shell: >
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ vmbr0_chr_ip }} user set admin password={{ chr_admin_password }}
+
+# - name: Add CHR admin public key
+#   ansible.builtin.shell: >
+#     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ vmbr0_chr_ip }} /file print file=tmpkey; /file set tmpkey.txt contents="{{ chr_admin_public_key }}"; /user ssh-keys import public-key-file=tmpkey.txt user=admin; /file remove tmpkey.txt 
+#     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ vmbr0_chr_ip }} /ip ssh set always-allow-password-login=no

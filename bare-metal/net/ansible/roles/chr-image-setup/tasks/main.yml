@@ -43,18 +43,21 @@
   ansible.builtin.shell: >
     mount -o loop,rw,offset={{ sector_size.stdout|int * root_offset.stdout|int }} {{ chr_image_path }} /mnt
 
-- name: Find out vmbr0 mac address
-  ansible.builtin.shell: >
-    ip a | awk '/ vmbr0:/{getline; print $2}'
-  register: vmbr0_mac
+- name: Create autorun.scr configuration for CHR
+  ansible.builtin.set_fact:
+    autorun_scr: |
+      /ip address add address={{ vmbr0_chr_ip }}/{{ vmbr0_chr_mask }} interface=[/interface get [find mac-address="{{ vmbr_chr_if_mac }}"] name]
+      /ip route add gateway={{ virtual_gateway_ip }}
+      /interface ethernet set [find mac-address={{ vmbr_chr_if_mac }}] mtu=1400
+
+- name: Debug print autorun scr
+  ansible.builtin.debug:
+    msg: "{{ autorun_scr }}"
 
 - name: Fill correct rw/autorun.scr contents
   ansible.builtin.copy:
     dest: /mnt/rw/autorun.scr
-    content: |
-      /ip address add address= interface={{ vmbr0_chr_if }}
-      /ip route add gateway={{ virtual_gateway_ip }}
-      /interface ethernet set [find mac-address={{ vmbr0_mac.stdout }}] mtu=1400
+    content: "{{ autorun_scr }}"
 
 - name: Umount CHR
   ansible.builtin.shell: >

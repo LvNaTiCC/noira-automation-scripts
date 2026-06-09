@@ -36,9 +36,3 @@ mikrotik_chr_image:
   dl_link: "https://download.mikrotik.com/routeros/7.21.4/chr-7.21.4.img.zip"
   format: "raw"
   vmid: 7000
-chr_initial_configuration: |
-  /ip address add address={{ service_router_ip }} interface=ether1
-  /ip route add gateway={{ virtual_gateway_ip }}
-  /interface ethernet set [find name=ether1] mtu=1400
-  /interface ethernet set [find name=ether2] mtu=1350
-  /interface ethernet set [find name=ether3] mtu=1350 
