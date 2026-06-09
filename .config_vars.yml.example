@@ -1,0 +1,96 @@
+# Physical proxmox hosts configuration
+authorized_keys: |
+  ssh-ed25519 ...
+pve_root_password: pa$$w0rd
+service_subnet_prefix: 192.168.1
+service_subnet_mask: 255.255.0.0
+blockdevs:
+  - /dev/nvme0n1
+  - /dev/nvme1n1
+pve_node_prefix: pve
+pve_domain_name_parent: noira.moe
+pve_system_disk_size: 64GiB
+local_zfs_vmdata_disk_allocation_end: "80%"
+linstor_disk_allocation_end: "100%"
+pve_cluster_name: "noira-pve-cls"
+zfs_pool_settings: "-o ashift=12 -O recordsize=32K -O atime=off -O sync=disabled" # Tuned for NVMe general VM load, change if needed
+vlan_id: 4090
+service_subnet_mtu: 1400
+api_automation_user: "admin"
+automation_user_pass: "adminpa$$w0rd"
+
+# Network Configuration
+service_subnet_prefix: 192.168.1
+service_subnet_mask: 255.255.0.0
+vlan_id: 4090
+service_subnet_mtu: 1400
+vnets:
+  - name: service
+    tag: 255
+    cidr: "10.255.0.0/16"
+    mask: 16
+    gateway: "10.255.0.1"
+    dhcp_ranges: "10.255.2.1-10.255.254.254"
+    allowed_routes:
+      - internal
+      - guests
+    allow_wan: true
+  - name: general
+    tag: 100
+    cidr: "10.100.0.0/16"
+    mask: 16
+    gateway: "10.100.0.1"
+    dhcp_ranges: "10.100.2.1-10.100.254.254"
+    allowed_routes:
+      - service
+    allow_wan: true
+  - name: internal
+    cidr: "10.90.0.0/16"
+    mask: 16
+    gateway: "10.90.0.1"
+    dhcp_ranges: "10.90.2.1-10.90.254.254"
+    tag: 90
+    allow_wan: false
+    allowed_routes:
+  - name: guests
+    tag: 50
+    cidr: "10.50.0.0/16"
+    mask: 16
+    gateway: "10.50.0.1"
+    dhcp_ranges: "10.50.2.1-10.50.254.254"
+    allowed_routes:
+    allow_wan: true
+virtual_gateway_if: "vmbr0"
+virtual_gateway_auth_pass: "pa$$w0rd"
+virtual_gateway_ip: "192.168.255.254"
+vmbr0_chr_ip: 192.168.100.100
+vmbr0_chr_mask: 16
+chr_admin_password: "pa$$w0rd_"
+mikrotik_chr_image:
+  dl_link: "https://download.mikrotik.com/routeros/7.21.4/chr-7.21.4.img.zip"
+  format: "raw"
+  vmid: 7000
+chr_admin_public_key: "ssh-ed25519 ..."
+vmbr_chr_if_mac: "BC:24:10:C0:C0:B0"
+
+# Templates auto-deploy configuration
+
+template_storage: "local-zfs-pool"
+
+cloud_images:
+  - name: mikrotik_chr
+    dl_link: "https://download.mikrotik.com/routeros/7.21.4/chr-7.21.4.img.zip"
+    format: "raw"
+    vmid: 9001
+  - name: debian_trixie_cloud
+    dl_link: "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+    vmid: 9002
+    format: "qcow2"
+  - name: rocky_9_cloud
+    dl_link:  "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+    vmid: 9003
+    format: "qcow2"
+  - name: ubuntu_cloud
+    dl_link: "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64.img"
+    vmid: 9004
+    format: "raw"

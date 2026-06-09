@@ -52,3 +52,4 @@ hosts.ini
 all.yml
 ansible.cfg
 credentials.yml
+config_vars.yml
