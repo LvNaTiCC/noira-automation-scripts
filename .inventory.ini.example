@@ -11,4 +11,4 @@ pve_slaves
 
 [pve_nodes:vars]
 ansible_user=root
-ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

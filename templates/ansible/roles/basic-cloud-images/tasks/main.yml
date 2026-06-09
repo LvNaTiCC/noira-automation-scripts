@@ -8,6 +8,7 @@
   ansible.builtin.get_url:
     url: "{{ item.dl_link }}"
     dest: /tmp/cloud-images/{{ item.dl_link.split('/')[-1] }}
+    timeout: 60
   loop: "{{ cloud_images }}"
   register: dl_result
 
