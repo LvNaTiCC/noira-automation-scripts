@@ -68,12 +68,6 @@
   ansible.builtin.shell: >
     mount -t btrfs /dev/md0p1 /mnt
 
-- name: Create BTRFS Subvolumes
-  tags: partitioning
-  ansible.builtin.shell: |
-    btrfs subvolume create /mnt/@
-    btrfs subvolume create /mnt/@snapshots
-
 - name: Remount root partiton
   tags: partitioning
   ansible.builtin.shell: >
@@ -158,8 +152,7 @@
   ansible.builtin.copy:
     dest: /mnt/etc/fstab
     content: |
-      {{ root_partition_uuid_result.stdout }} / btrfs subvol=@,defaults,compress=zstd,noatime 0 2
-      {{ root_partition_uuid_result.stdout }} /.snapshots btrfs subvol=@snapshots,defaults,compress=zstd,noatime 0 2
+      {{ root_partition_uuid_result.stdout }} / btrfs defaults,compress=zstd,noatime 0 2
       {{ swap_partition_uuid_result.stdout }} swap swap defaults 0 0
 
 - name: Add ssh authorized_keys

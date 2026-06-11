@@ -5,7 +5,7 @@
 
 - name: Initiate rollback
   ansible.builtin.shell: >
-    snapper --ambit classic rollback {{ pve_clean_snapshot.stdout }}
+    snapper rollback {{ pve_clean_snapshot.stdout }}
 
 - name: Reboot
   ansible.builtin.reboot:
