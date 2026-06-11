@@ -1,0 +1,4 @@
+- name: Rollback to clean standalone
+  hosts: pve_nodes
+  roles:
+    - role: rollback-to-clean-standalone

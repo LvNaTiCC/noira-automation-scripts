@@ -2,8 +2,6 @@
 authorized_keys: |
   ssh-ed25519 ...
 pve_root_password: pa$$w0rd
-service_subnet_prefix: 192.168.1
-service_subnet_mask: 255.255.0.0
 blockdevs:
   - /dev/nvme0n1
   - /dev/nvme1n1
@@ -15,37 +13,40 @@ linstor_disk_allocation_end: "100%"
 pve_cluster_name: "noira-pve-cls"
 zfs_pool_settings: "-o ashift=12 -O recordsize=32K -O atime=off -O sync=disabled" # Tuned for NVMe general VM load, change if needed
 vlan_id: 4090
-service_subnet_mtu: 1400
+physical_subnet_mtu: 1400
 api_automation_user: "admin"
 automation_user_pass: "adminpa$$w0rd"
 
 # Network Configuration
-service_subnet_prefix: 192.168.1
-service_subnet_mask: 255.255.0.0
+physical_subnet_prefix: 192.168.1
+physical_subnet_mask: 255.255.0.0
 physical_cidr: 192.168.0.0/16
 vlan_id: 4090
-service_subnet_mtu: 1400
+physical_subnet_mtu: 1400
 vnets:
   - name: service
     tag: 255
     cidr: "10.255.0.0/16"
     mask: 16
+    isolate_physical: false
     gateway: "10.255.0.1"
     dhcp_ranges: "10.255.2.1-10.255.254.254"
     allowed_routes:
-      - internal
+      - no_internet
       - guests
     allow_wan: true
   - name: general
     tag: 100
     cidr: "10.100.0.0/16"
+    isolate_physical: true
     mask: 16
     gateway: "10.100.0.1"
     dhcp_ranges: "10.100.2.1-10.100.254.254"
     allowed_routes:
       - service
     allow_wan: true
-  - name: internal
+  - name: no_internet
+    isolate_physical: true
     cidr: "10.90.0.0/16"
     mask: 16
     gateway: "10.90.0.1"
@@ -54,6 +55,7 @@ vnets:
     allow_wan: false
     allowed_routes:
   - name: guests
+    isolate_physical: true
     tag: 50
     cidr: "10.50.0.0/16"
     mask: 16
@@ -88,7 +90,7 @@ cloud_images:
     vmid: 9002
     format: "qcow2"
   - name: rocky_9_cloud
-    dl_link:  "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+    dl_link:  "http://mirror.uv.es/mirror/rocky-linux/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2"
     vmid: 9003
     format: "qcow2"
   - name: ubuntu_cloud

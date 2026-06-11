@@ -8,12 +8,12 @@
     - role: deploy-pve-9
       tags: pve9_deployment,base_deployment
     - role: zfs-vm-storage
-      tags: zfs-setup,base_deployment,base_deployment
+      tags: zfs-setup
 
 - name: Cluster setup
   hosts: pve_master
   roles:
     - role: pve-cls-join
-      tags: cluster-setup,base_deployment
+      tags: cluster-setup
     - role: api-token-setup
       tags: api-token-setup

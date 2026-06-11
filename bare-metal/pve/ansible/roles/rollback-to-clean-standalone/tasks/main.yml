@@ -1,0 +1,16 @@
+- name: Find snapshot with appropriate comment
+  ansible.builtin.shell: >
+    snapper list | awk '/PVE Standalone Clean/ {print $1}' | tail -n 1
+  register: pve_clean_snapshot
+
+- name: Initiate rollback
+  ansible.builtin.shell: >
+    snapper --ambit classic rollback {{ pve_clean_snapshot.stdout }}
+
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 3600
+
+- name: Create snapshot
+  ansible.builtin.shell: >
+    snapper -c root create --description "PVE Standalone Clean" --cleanup-algorithm empty-pre-post

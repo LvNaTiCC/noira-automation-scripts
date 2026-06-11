@@ -78,7 +78,7 @@
       {% for vnet in vnets if vnet.allowed_routes is not none %}
         {% if allow_route_vnet.isolate_physical %}
       ip firewall filter add chain=input action=drop src-address={{ vnet.cidr }} dst-address={{ physical_cidr }} protocol=tcp comment="TCP Rule for VNet {{ vnet.name }} prohibiting access to physical hardware subnet"
-      ip firewall filter add chain=input action=drop src-address={{ vnet.cidr }} dst-address={{ physical_cidr }} protocol=udp comment="TCP Rule for VNet {{ vnet.name }} prohibiting access to physical hardware subnet"
+      ip firewall filter add chain=input action=drop src-address={{ vnet.cidr }} dst-address={{ physical_cidr }} protocol=udp comment="UDP Rule for VNet {{ vnet.name }} prohibiting access to physical hardware subnet"
         {% endif %}
       {% endfor %}
 
