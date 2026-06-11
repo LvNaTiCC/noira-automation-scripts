@@ -134,12 +134,12 @@
       iface eno1 inet static
         address {{ ansible_host }}
         gateway {{ gateway_result.stdout }}
-        netmask {{ service_subnet_mask }}
+        netmask {{ physical_subnet_mask }}
 
       auto eno1.{{ vlan_id }}
       iface eno1.{{ vlan_id }} inet manual
         vlan-raw-device eno1
-        mtu {{ service_subnet_mtu }}
+        mtu {{ physical_subnet_mtu }}
       
       auto vmbr0
       iface vmbr0 inet static
@@ -147,9 +147,9 @@
         bridge_stp off
         bridge_fd 0
         bridge_maxwait 0
-        address {{ service_subnet_prefix }}.{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}
-        netmask {{ service_subnet_mask }}
-        mtu {{ service_subnet_mtu }}
+        address {{ physical_subnet_prefix }}.{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}
+        netmask {{ physical_subnet_mask }}
+        mtu {{ physical_subnet_mtu }}
 
 # MBR-Style (No /boot mount)
 - name: Configure fstab
@@ -180,7 +180,7 @@
       ::1             localhost ip6-localhost ip6-loopback
       ff02::1         ip6-allnodes
       ff02::2         ip6-allrouters
-      {{ service_subnet_prefix }}.{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}      {{ inventory_hostname }}
+      {{ physical_subnet_prefix }}.{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}      {{ inventory_hostname }}
 ###
 # Postinstall
 ###

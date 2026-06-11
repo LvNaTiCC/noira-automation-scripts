@@ -14,7 +14,7 @@
 
 - name: Get cluster join information
   community.proxmox.proxmox_cluster_join_info:
-    api_host: "{{ service_subnet_prefix }}.1"
+    api_host: "{{ physical_subnet_prefix }}.1"
     api_user: root@pam
     api_password: "{{ pve_root_password }}"
     validate_certs: false
@@ -22,7 +22,7 @@
 
 - name: Set master ip address
   ansible.builtin.set_fact:
-    master_ip_addr: "{{ service_subnet_prefix }}.1"
+    master_ip_addr: "{{ physical_subnet_prefix }}.1"
 
 - name: Set master fingeprint fact
   ansible.builtin.set_fact:
@@ -35,7 +35,7 @@
       api_host: "{{ item }}"
       api_user: root@pam
       api_password: "{{ pve_root_password }}"
-      master_ip: "{{ service_subnet_prefix }}.1"
+      master_ip: "{{ physical_subnet_prefix }}.1"
       fingerprint: "{{ master_fingerprint }}"
       validate_certs: false
     register: join_result

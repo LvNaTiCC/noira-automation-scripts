@@ -1,6 +1,6 @@
 127.0.0.1       localhost
 {% for host_name in groups['pve_nodes'] %}
-{{ service_subnet_prefix }}.{{ loop.index }} {{ host_name }} {{ host_name.split('.')[0] }}
+{{ physical_subnet_prefix }}.{{ loop.index }} {{ host_name }} {{ host_name.split('.')[0] }}
 {% endfor %}
 
 # The following lines are desirable for IPv6 capable hosts
