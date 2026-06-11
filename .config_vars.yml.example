@@ -22,6 +22,7 @@ automation_user_pass: "adminpa$$w0rd"
 # Network Configuration
 service_subnet_prefix: 192.168.1
 service_subnet_mask: 255.255.0.0
+physical_cidr: 192.168.0.0/16
 vlan_id: 4090
 service_subnet_mtu: 1400
 vnets:

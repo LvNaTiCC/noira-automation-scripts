@@ -46,7 +46,11 @@
       {% for vnet in vnets %}
         {% set chr_if_mac = vnet_macs.results[loop.index0].stdout | upper %}
         {% if vnet.allow_wan %}
+          {% if vnet.isolate_physical %}
+      ip firewall nat add chain=srcnat in-interface=[/interface get [find mac-address="{{ chr_if_mac }}"] name] out-interface=[/interface get [find mac-address="{{ vmbr0_mac.stdout | upper }}"] name] dst-address=!{{ physical_cidr }} action=masquerade
+          {% else %}
       ip firewall nat add chain=srcnat in-interface=[/interface get [find mac-address="{{ chr_if_mac }}"] name] out-interface=[/interface get [find mac-address="{{ vmbr0_mac.stdout | upper }}"] name] action=masquerade
+          {% endif %}
         {% endif %}
       {% endfor %}
 
@@ -65,6 +69,17 @@
             {% endif %}
           {% endfor %}
         {% endfor %}
+      {% endfor %}
+
+- name: Build configuration for isolating vswitch subnet
+  ansible.builtin.set_fact:
+    cfg_inter_subnet_firewall: |
+      #jinja2: lstrip_blocks: True
+      {% for vnet in vnets if vnet.allowed_routes is not none %}
+        {% if allow_route_vnet.isolate_physical %}
+      ip firewall filter add chain=input action=drop src-address={{ vnet.cidr }} dst-address={{ physical_cidr }} protocol=tcp comment="TCP Rule for VNet {{ vnet.name }} prohibiting access to physical hardware subnet"
+      ip firewall filter add chain=input action=drop src-address={{ vnet.cidr }} dst-address={{ physical_cidr }} protocol=udp comment="TCP Rule for VNet {{ vnet.name }} prohibiting access to physical hardware subnet"
+        {% endif %}
       {% endfor %}
 
 - name: Wait for CHR to be reachable via ssh
