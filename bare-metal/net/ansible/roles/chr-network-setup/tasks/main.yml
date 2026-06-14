@@ -39,6 +39,55 @@
       ip dhcp-server add name={{ vnet.name }} interface=[/interface get [find mac-address="{{ chr_if_mac }}"] name] authoritative=yes address-pool={{ vnet.name }}
       {% endfor %}
 
+- name: Build DROPALL rule
+  ansible.builtin.set_fact:
+    cfg_firewall_drop_all: |
+      ip firewall filter add chain=forward action=drop comment="FORWARD DROP ALL"
+      ip firewall filter add chain=input action=drop comment="INPUT DROP ALL"
+      ip firewall filter add chain=input action=accept src-address={{ physical_cidr }} dst-address={{ physical_cidr }} place-before=[/ip firewall filter find comment="INPUT DROP ALL"] comment="INPUT ACCEPT {{ physical_cidr }} <-> {{ physical_cidr }}"
+      ip firewall filter add chain=forward action=accept src-address={{ physical_cidr }} dst-address={{ physical_cidr }} place-before=[/ip firewall filter find comment="FORWARD DROP ALL"] comment="FORWARD ACCEPT {{ physical_cidr }} <-> {{ physical_cidr }}"
+
+- name: Add Address List for LAN subnets
+  ansible.builtin.set_fact:
+    cfg_firewall_lan_address_list: |
+      {% for vnet in vnets %}
+      ip firewall address-list add list=lan address={{ vnet.cidr }}
+      {% endfor %}
+
+- name: Rules for proper WAN functioning
+  ansible.builtin.set_fact:
+    cfg_firewall_allow_forward_to_fabric: |
+      {% for vnet in vnets if vnet.allow_wan %}
+      ip firewall filter add chain=forward action=accept src-address={{ vnet.cidr }} dst-address-list=!lan place-before=[/ip firewall filter find comment="FORWARD DROP ALL"] comment="FORWARD ACCEPT {{ vnet.name }} -> NOT LAN"
+      ip firewall filter add chain=forward action=accept dst-address={{ vnet.cidr }} src-address-list=!lan place-before=[/ip firewall filter find comment="FORWARD DROP ALL"] comment="FORWARD ACCEPT NOT LAN -> {{ vnet.name }}"
+      ip firewall filter add chain=input action=accept dst-address={{ vnet.cidr }} src-address-list=!lan place-before=[/ip firewall filter find comment="INPUT DROP ALL"] comment="INPUT ACCEPT {{ vnet.name }} -> LAN"
+      ip firewall filter add chain=input action=accept src-address={{ vnet.cidr }} dst-address-list=!lan place-before=[/ip firewall filter find comment="INPUT DROP ALL"] comment="INPUT ACCEPT LAN -> {{ vnet.name }}"
+      {% endfor %}
+      ip firewall filter add chain=input action=accept src-address={{ physical_cidr }} dst-address-list=!lan place-before=[/ip firewall filter find comment="INPUT DROP ALL"] comment="INPUT ACCEPT NOT LAN -> {{ physical_cidr }}"
+      ip firewall filter add chain=input action=accept dst-address={{ physical_cidr }} src-address-list=!lan place-before=[/ip firewall filter find comment="INPUT DROP ALL"] comment="INPUT ACCEPT {{ physical_cidr }} -> NOT LAN"
+      
+- name: Allow routing within subnets through the router
+  ansible.builtin.set_fact:
+    cfg_firewall_allow_subnet_inside_input: |
+      {% for vnet in vnets %}
+      ip firewall filter add chain=input action=accept dst-address={{ vnet.cidr }} src-address={{ vnet.cidr }} comment="INPUT ACCEPT INSIDE {{ vnet.name }}" place-before=[/ip firewall filter find comment="INPUT DROP ALL"]
+      {% endfor %}
+
+- name: Build configuration for inter-subnet routing
+  ansible.builtin.set_fact:
+    cfg_firewall_subnet_forward: |
+      #jinja2: lstrip_blocks: True
+      {% for vnet in vnets %}
+        {% if vnet.allowed_routes is defined %}
+          {% for allow_route_vnet in vnets if allow_route_vnet.name in vnet.allowed_routes %}
+      ip firewall filter add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ allow_route_vnet.gateway }} protocol=tcp comment="TCP Rule for VNets {{ vnet.name }} -> {{ allow_route_vnet.name }}" place-before=[/ip firewall filter find comment="FORWARD DROP ALL"]
+      ip firewall filter add chain=forward action=accept src-address={{ allow_route_vnet.cidr }} dst-address={{ vnet.gateway }} protocol=tcp comment="TCP Rule for VNets {{ allow_route_vnet.name }} -> {{ vnet.name }}" place-before=[/ip firewall filter find comment="FORWARD DROP ALL"]
+      ip firewall filter add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ allow_route_vnet.gateway }} protocol=udp comment="UDP Rule for VNets {{ vnet.name }} -> {{ allow_route_vnet.name }}" place-before=[/ip firewall filter find comment="FORWARD DROP ALL"]
+      ip firewall filter add chain=forward action=accept src-address={{ allow_route_vnet.cidr }} dst-address={{ vnet.gateway }} protocol=udp comment="UDP Rule for VNets {{ allow_route_vnet.name }} -> {{ vnet.name }}" place-before=[/ip firewall filter find comment="FORWARD DROP ALL"]
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+
 - name: Build configuration for src-nat
   ansible.builtin.set_fact:
     cfg_src_nat: |
@@ -54,43 +103,21 @@
         {% endif %}
       {% endfor %}
 
-- name: Build configuration for inter-subnet routing
+- name: Build configuration for dns server
   ansible.builtin.set_fact:
-    cfg_inter_subnet_firewall: |
+    cfg_dns: |
       #jinja2: lstrip_blocks: True
-      {% for vnet in vnets if vnet.allowed_routes is not none %}
-        {% for allowed_route in vnet.allowed_routes %}
-          {% for allow_route_vnet in vnets %}
-            {% if allow_route_vnet.name == allowed_route %}
-      ip firewall filter add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ allow_route_vnet.gateway }} connection-state=new protocol=tcp comment="TCP Rule for VNets {{ vnet.name }} -> {{ allow_route_vnet.name }}"
-      ip firewall filter add chain=forward action=accept src-address={{ allow_route_vnet.cidr }} dst-address={{ vnet.gateway }} connection-state=new protocol=tcp comment="TCP Rule for VNets {{ allow_route_vnet.name }} -> {{ vnet.name }}"
-      ip firewall filter add chain=forward action=accept src-address={{ vnet.cidr }} dst-address={{ allow_route_vnet.gateway }} connection-state=new protocol=udp comment="UDP Rule for VNets {{ vnet.name }} -> {{ allow_route_vnet.name }}"
-      ip firewall filter add chain=forward action=accept src-address={{ allow_route_vnet.cidr }} dst-address={{ vnet.gateway }} connection-state=new protocol=udp comment="UDP Rule for VNets {{ allow_route_vnet.name }} -> {{ vnet.name }}"
-            {% endif %}
-          {% endfor %}
-        {% endfor %}
-      {% endfor %}
-
-- name: Build configuration for isolating vswitch subnet
-  ansible.builtin.set_fact:
-    cfg_inter_subnet_firewall: |
-      #jinja2: lstrip_blocks: True
-      {% for vnet in vnets if vnet.allowed_routes is not none %}
-        {% if allow_route_vnet.isolate_physical %}
-      ip firewall filter add chain=input action=drop src-address={{ vnet.cidr }} dst-address={{ physical_cidr }} protocol=tcp comment="TCP Rule for VNet {{ vnet.name }} prohibiting access to physical hardware subnet"
-      ip firewall filter add chain=input action=drop src-address={{ vnet.cidr }} dst-address={{ physical_cidr }} protocol=udp comment="UDP Rule for VNet {{ vnet.name }} prohibiting access to physical hardware subnet"
-        {% endif %}
-      {% endfor %}
+      ip dns set servers=1.1.1.1,8.8.8.8 allow-remote-requests=yes
 
 - name: Wait for CHR to be reachable via ssh
   ansible.builtin.wait_for:
     host: "{{ vmbr0_chr_ip }}"
     port: 22
-    delay: 10
+    delay: 2
     timeout: 300
     state: started
 
-- name: Execute all configuration on CHR
+- name: Execute main configuration on CHR
   ansible.builtin.shell: |
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ vmbr0_chr_ip }} << 'EOF'
     {{ item }}
@@ -99,8 +126,42 @@
     - "{{ cfg_ip_address_assignments }}"
     - "{{ cfg_ip_address_pools }}"
     - "{{ cfg_dhcp_server }}"
+    - "{{ cfg_dns }}"
+    - "{{ cfg_firewall_drop_all }}"
+    - "{{ cfg_firewall_allow_subnet_inside_input }}"
+    - "{{ cfg_firewall_lan_address_list }}"
+    - "{{ cfg_firewall_subnet_forward }}"
+    - "{{ cfg_firewall_allow_forward_to_fabric }}"
     - "{{ cfg_src_nat }}"
-    - "{{ cfg_inter_subnet_firewall }}"
+
+- name: Block torrent ports
+  ansible.builtin.set_fact:
+    cfg_ports_torrent_block: |
+      #jinja2: lstrip_blocks: True
+      ip firewall filter add chain=forward action=drop src-address={{ physical_cidr }} protocol=tcp dst-port=6881-6889
+      ip firewall filter add chain=forward action=drop src-address={{ physical_cidr }} protocol=udp dst-port=6881-6889
+      ip firewall filter add chain=forward action=drop src-address={{ physical_cidr }} protocol=tcp dst-port=4321
+      ip firewall filter add chain=forward action=drop src-address={{ physical_cidr }} protocol=tcp dst-port=3544
+      ip firewall filter add chain=forward action=drop src-address={{ physical_cidr }} protocol=udp dst-port=4321
+      ip firewall filter add chain=forward action=drop src-address={{ physical_cidr }} protocol=udp dst-port=3544
+  when: block_torrents
+
+- name: Create layer7 filtering rules
+  ansible.builtin.set_fact: 
+    cfg_layer7_torrent_block: |
+      ip firewall layer7-protocol add name=torrentdomains regexp="^.*(get|GET).+(torrent|thepiratebay|isohunt|entertane|demonoid|btjunkie|mininova|flixflux|torrentz|vertor|h33t|btscene|bitunity|bittoxic|thunderbytes|entertane|zoozle|vcdq|bitnova|bitsoup|meganova|fulldls|btbot|flixflux|seedpeer|fenopy|gpirate|commonbits).*"
+      add chain=forward src-address={{ physical_cidr }} layer7-protocol=torrents action=drop comment=torrents
+  when: block_torrents
+
+- name: Execute torrent blocking configuration on CHR
+  ansible.builtin.shell: |
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ vmbr0_chr_ip }} << 'EOF'
+    {{ item }}
+    EOF
+  loop:
+    - "{{ cfg_layer7_torrent_block }}"
+    - "{{ cfg_ports_torrent_block }}"
+  when: block_torrents
 
 - name: Set CHR admin password
   ansible.builtin.shell: >

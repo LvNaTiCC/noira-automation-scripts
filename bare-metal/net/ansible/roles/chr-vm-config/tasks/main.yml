@@ -23,12 +23,15 @@
       pvesr schedule-now 1001-{{ loop.index }}
       {% endfor %}
 
-- name: Run ZFS job commands
-  failed_when: false # DEBUG
-  ansible.builtin.shell: |
-    {{ pvesr_job_commands }}
+# - name: Run ZFS job commands
+#   ansible.builtin.shell: |
+#     {{ pvesr_job_commands }}
 
-- name: Add VM to HA
-  tags: chr_ha
+# - name: Add VM to HA
+#   tags: chr_ha
+#   ansible.builtin.shell: |
+#     ha-manager add vm:1001 --failback 0
+
+- name: Start CHR
   ansible.builtin.shell: |
-    ha-manager add vm:1001 --failback 0
+    qm start 1001

@@ -78,6 +78,6 @@
 - name: Import the disk and attach the disk
   tags: template-creation
   ansible.builtin.shell: |
-    qm importdisk 1001 {{ chr_image_path }} local-zfs-pool
-    qm set 1001 --scsi0 local-zfs-pool:vm-1001-disk-0,discard=on
+    qm importdisk 1001 {{ chr_image_path }} local-zfs-mirror
+    qm set 1001 --scsi0 local-zfs-mirror:vm-1001-disk-0,discard=on
     qm set 1001 --boot 'order=scsi0'

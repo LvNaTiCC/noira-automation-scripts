@@ -4,11 +4,13 @@
     - role: sdn
       tags: sdn-configuration
 
-- name: PVE Gateway Setup
+- name: PVE Gateway and NAT Setup
   hosts: pve_nodes
   roles:
     - role: ha-gateway
       tags: ha-gateway
+    - role: nat
+      tags: nat-setup
 
 - name: Deploy CHR router
   hosts: pve_master
@@ -17,7 +19,6 @@
       tags: chr-image-setup
     - role: chr-vm-config
       tags: chr-vm-config
-    - role: nat
-      tags: chr-nat-setup
+
     - role: chr-network-setup
       tags: chr-network-setup

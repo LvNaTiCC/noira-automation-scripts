@@ -5,10 +5,18 @@
     src: templates/hosts.j2
     dest: /etc/hosts
 
+- name: Install eatmydata for faster apt
+  ansible.builtin.apt:
+    state: present
+    name: eatmydata
+    
+
 - name: Prerequisite for debian 13 specific ansible module working
   ansible.builtin.apt:
     state: present
     name: python3-debian
+  environment:
+    LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libeatmydata.so
 
 - name: Add PVE repository for Debian Trixie
   ansible.builtin.deb822_repository:
@@ -44,12 +52,16 @@
   ansible.builtin.apt:
     update_cache: true
     upgrade: full
+  environment:
+    LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libeatmydata.so
 
 - name: Install the Proxmox VE Kernel
   ansible.builtin.apt:
     state: present
     name:
       - proxmox-default-kernel
+  environment:
+    LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libeatmydata.so
 
 - name: Reboot into new kernel
   ansible.builtin.reboot:
@@ -63,6 +75,8 @@
       - postfix
       - open-iscsi
       - chrony
+  environment:
+    LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libeatmydata.so
 
 - name: Remove Debian Kernel
   ansible.builtin.shell: >
@@ -88,7 +102,3 @@
 - name: Reboot
   ansible.builtin.reboot:
     reboot_timeout: 3600
-
-- name: Create snapshot
-  ansible.builtin.shell: >
-    snapper -c root create --description "PVE Standalone Clean" --cleanup-algorithm empty-pre-post

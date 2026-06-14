@@ -13,6 +13,21 @@
   ansible.builtin.shell: >
     sysctl -p
 
+- name: Clean up iptables
+  ansible.builtin.shell: |
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT ACCEPT
+    iptables -F
+    iptables -X
+    iptables -t nat -F
+    iptables -t nat -X
+    iptables -t mangle -F
+    iptables -t mangle -X
+    iptables -t raw -F
+    iptables -t raw -X
+
+
 - name: Add iptables NAT rules
   ansible.builtin.shell: |
     iptables -t nat -A POSTROUTING -s 192.168.0.0/16 -o eno1 -j MASQUERADE

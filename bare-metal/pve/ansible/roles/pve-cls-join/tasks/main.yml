@@ -17,8 +17,12 @@
     api_host: "{{ physical_subnet_prefix }}.1"
     api_user: root@pam
     api_password: "{{ pve_root_password }}"
+    api_timeout: 60
     validate_certs: false
   register: cluster_info
+  until: cluster_info.cluster_join is defined
+  retries: 3
+  delay: 10
 
 - name: Set master ip address
   ansible.builtin.set_fact:

@@ -1,6 +1,6 @@
-- name: Build a list of all zfs partitions
+- name: Build a list of all zfs redundant partitions
   ansible.builtin.set_fact:
-    all_zfs_partitions: >-
+    all_zfs_partitions_redundant: >-
       {{
         blockdevs
         | product([2])
@@ -8,7 +8,20 @@
         | join(' ')
       }}
 
+- name: Build a list of all zfs general partitions
+  ansible.builtin.set_fact:
+    all_zfs_partitions_general: >-
+      {{
+        blockdevs
+        | product([3])
+        | map('join', 'p')
+        | join(' ')
+      }}
+ 
+
 - name: Create basic non-redundant pool for vm disks and add it to PVE
   ansible.builtin.shell: |
-    zpool create local-zfs-pool -f {{ zfs_pool_settings }} mirror {{ all_zfs_partitions }}
-    pvesm add zfspool local-zfs-pool -pool local-zfs-pool
+    zpool create local-zfs-mirror -f {{ zfs_pool_settings }} mirror {{ all_zfs_partitions_redundant }}
+    zpool create local-zfs-stripe -f {{ zfs_pool_settings }} {{ all_zfs_partitions_general }}
+    pvesm add zfspool local-zfs-mirror -pool local-zfs-mirror
+    pvesm add zfspool local-zfs-stripe -pool local-zfs-stripe

@@ -1,22 +1,21 @@
 # Clean up section in case of a previously failed playbook run, to reduce manual intervention and reboots.
 ###
 # Lazy umouting is used because failed runs tend to lock up the /mnt directory or it's subdirectories in a "busy" state, depending on where the failure occured.
-- name: Clean up binds
+- name: Clean up mounts
   tags: partitioning
-  ansible.builtin.shell: >
-    umount -l /mnt/{{ item }}
-  loop: [proc, sys, dev, dev/pts, run]
-  failed_when: false
-
-- name: Clean up root mount
-  tags: partitioning
-  ansible.builtin.shell: >
-    umount -l /mnt
+  ansible.builtin.shell: |
+    umount -l \ 
+      /mnt/proc \
+      /mnt/sys \
+      /mnt/dev \
+      /mnt/dev/pts \
+      /mnt/run \
+      /mnt
   failed_when: false
 
 - name: Overwrite system disk with zeroes
   tags: partitioning
-  ansible.builtin.shell: > 
+  ansible.builtin.shell: | 
     dd if=/dev/zero of=/dev/md0 bs=1M count=2048 status=progress
 
 ###
@@ -28,8 +27,8 @@
     device: /dev/md0
     label: msdos
     number: 1
-    part_start: 1GiB
-    part_end: 56GiB
+    part_start: 16MiB
+    part_end: -8GiB
     state: present
 
 - name: Create swap partition
@@ -37,26 +36,27 @@
   community.general.parted:
     device: /dev/md0
     number: 2
-    part_start: 56GiB
+    part_start: -8GiB
     part_end: 100%
     state: present
 
-- name: Installl btrfs-progs
-  ansible.builtin.shell: >
-    apt install -y btrfs-progs
+- name: Installl eatmydata
+  ansible.builtin.shell: |
+    apt install -y eatmydata
 
 - name: Format partitions
   tags: partitioning
-  ansible.builtin.shell: >
-    mkfs.btrfs -L system /dev/md0p1 && mkswap /dev/md0p2
+  ansible.builtin.shell: |
+    mkfs.ext4 -L system /dev/md0p1
+    mkswap /dev/md0p2
 
 - name: Get root partition UUID
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     blkid /dev/md0p1 | awk '{print $3; exit}'
   register: root_partition_uuid_result
 
 - name: Get swap partition UUID
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     blkid /dev/md0p2 | awk '{print $2; exit}'
   register: swap_partition_uuid_result
 
@@ -65,18 +65,13 @@
 ###
 - name: Mount debootstrap directory
   tags: partitioning
-  ansible.builtin.shell: >
-    mount -t btrfs /dev/md0p1 /mnt
-
-- name: Remount root partiton
-  tags: partitioning
-  ansible.builtin.shell: >
-    umount -l /mnt && mount -o defaults,compress=zstd /dev/md0p1 /mnt
+  ansible.builtin.shell: |
+    mount -t ext4 /dev/md0p1 /mnt
 
 - name: Run debootstrap
   tags: debootstrap
-  ansible.builtin.shell: >
-    debootstrap --arch amd64 trixie /mnt http://deb.debian.org/debian
+  ansible.builtin.shell: |
+    eatmydata debootstrap --arch amd64 trixie /mnt http://deb.debian.org/debian
 
 # https://manpages.debian.org/trixie/apt/sources.list.5.en.html
 - name: Add repositories
@@ -95,7 +90,7 @@
       Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 - name: Get default gateway
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     ip route show default | awk '/default/ {print $3; exit}'
   register: gateway_result
   changed_when: false
@@ -152,7 +147,7 @@
   ansible.builtin.copy:
     dest: /mnt/etc/fstab
     content: |
-      {{ root_partition_uuid_result.stdout }} / btrfs defaults,compress=zstd,noatime 0 2
+      {{ root_partition_uuid_result.stdout }} / ext4 defaults,noatime,nodiratime,commit=60  0  2
       {{ swap_partition_uuid_result.stdout }} swap swap defaults 0 0
 
 - name: Add ssh authorized_keys
@@ -191,59 +186,68 @@
   loop: [proc, sys, dev, dev/pts, run]
 
 - name: Update package index inside chroot
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     chroot /mnt apt update
 
 - name: Upgrade packages inside chroot
-  ansible.builtin.shell: >
-    chroot /mnt apt upgrade -y
+  ansible.builtin.shell: |
+    eatmydata chroot /mnt apt upgrade -y
 
 - name: Install needed packages
-  ansible.builtin.shell: >
-    chroot /mnt apt install -y linux-image-amd64 grub-pc wget lvm2 openssh-server mdadm bridge-utils vlan btrfs-progs snapper python3 python3-pip python3-venv
+  ansible.builtin.shell: |
+    eatmydata chroot /mnt apt install -y \
+      linux-image-amd64 \
+      grub-pc \
+      wget \
+      lvm2 \
+      openssh-server \
+      mdadm bridge-utils \
+      vlan \
+      btrfs-progs \
+      snapper \
+      python3 \
+      python3-pip \
+      python3-venv
 
 - name: Save mdadm config into newroot
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     mdadm --detail --scan | tee /mnt/etc/mdadm/mdadm.conf
 
-- name: Prevent any further mdadm configuration modification during system updates
-  ansible.builtin.shell: >
-    chattr +i /mnt/etc/mdadm/mdadm.conf
+# - name: Prevent any further mdadm configuration modification during system updates
+#   ansible.builtin.shell: |
+#     chattr +i /mnt/etc/mdadm/mdadm.conf
 
 - name: Install grub to boot devices
-  ansible.builtin.shell: >
-    chroot /mnt grub-install /dev/nvme0n1 && chroot /mnt grub-install /dev/nvme1n1
+  ansible.builtin.shell: |
+    chroot /mnt grub-install {{ item }}
+  loop: "{{ blockdevs }}"
 
 - name: Generate grub configuration
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     chroot /mnt update-grub
 
 - name: Enable OpenSSH Server
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     chroot /mnt systemctl enable ssh
 
 - name: Change root password
-  ansible.builtin.shell: >
+  ansible.builtin.shell: |
     echo "root:{{ pve_root_password }}" | chroot /mnt chpasswd
 
-- name: Clean up binds
-  tags: postinstall_cleanup
-  ansible.builtin.shell: >
-    umount -l /mnt/{{ item }}
-  loop: [proc, sys, dev, dev/pts, run]
-  failed_when: false
-
-- name: Clean up root mount
+- name: Clean up mounts
   tags: partitioning
-  ansible.builtin.shell: >
-    umount -l /mnt
+  ansible.builtin.shell: |
+    umount -l \ 
+      /mnt/proc \
+      /mnt/sys \
+      /mnt/dev \
+      /mnt/dev/pts \
+      /mnt/run \
+      /mnt
+  failed_when: false
 
 - name: Reboot
   ansible.builtin.reboot:
     reboot_timeout: 3600
-
-- name: Create initial snapshot, set up snapper
-  ansible.builtin.shell: >
-    snapper -c root create-config / && mount -a && snapper -c root create --description "Initial base snapshot" --cleanup-algorithm empty-pre-post
 ###
 

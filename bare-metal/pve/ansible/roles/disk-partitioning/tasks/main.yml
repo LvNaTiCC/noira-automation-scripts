@@ -1,15 +1,14 @@
-- name: Clean up binds
+- name: Clean up mounts
   tags: partitioning
-  ansible.builtin.shell: >
-    umount -l /mnt/{{ item }}
-  loop: [proc, sys, dev, dev/pts, run]
+  ansible.builtin.shell: |
+    umount -l \ 
+      /mnt/proc \
+      /mnt/sys \
+      /mnt/dev \
+      /mnt/dev/pts \
+      /mnt/run \
+      /mnt
   failed_when: false
-
-- name: Clean up root mount
-  tags: partitioning
-  ansible.posix.mount:
-    path: "/mnt"
-    state: unmounted
 
 - name: Stop all arrays
   ansible.builtin.shell: mdadm --stop --scan
@@ -29,22 +28,22 @@
     part_end: "{{ pve_system_disk_size }}"
   loop: "{{ blockdevs }}"
 
-- name: Create component partitions for local vm disks
+- name: Create component partitions for redundant local vm disks
   community.general.parted:
     device: "{{ item }}"
     number: 2
     state: present
     part_start: "{{ pve_system_disk_size }}"
-    part_end: "{{ local_zfs_vmdata_disk_allocation_end }}"
+    part_end: "{{ local_zfs_vmdata_redundant }}"
   loop: "{{ blockdevs }}"
 
-- name: Create component partitions for linstor
+- name: Create component partitions for striped local vm disks
   community.general.parted:
     device: "{{ item }}"
     number: 3
     state: present
-    part_start: "{{ local_zfs_vmdata_disk_allocation_end }}"
-    part_end: "{{ linstor_disk_allocation_end }}"
+    part_start: "{{ local_zfs_vmdata_redundant }}"
+    part_end: "{{ local_zfs_vmdata_general }}"
   loop: "{{ blockdevs }}"
 
 - name: Build a list of all partitions
