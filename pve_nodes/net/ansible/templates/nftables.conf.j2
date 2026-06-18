@@ -33,11 +33,3 @@ table ip nat {
         oifname "vmbr0" ip saddr 10.0.0.0/8 masquerade
     }
 }
-
-# This NFTables is made with an assumption that all networking will be managed through 
-# a single simple vmbr0 linux bridge on top of an existing outer VLAN interface enslaved to this bridge 
-# which provides enough networking for a small cluster deployment with a single tenant
-# This saves a lot of headache and makes sense for such a deployment.
-
-
-# Network security with this configuration can be achieved by making mac based firewall rules for untrusted VMs

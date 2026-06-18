@@ -22,7 +22,7 @@
     validate_certs: false
   register: cluster_info
   until: cluster_info.cluster_join is defined
-  retries: 3
+  retries: -1
   delay: 10
 
 - name: Set master ip address
@@ -48,7 +48,7 @@
     # it tends to misreport failed cluster joins as "changed". But if it is not "changed", and is not "failed" then it is 100% guranteeed that it has already
     # joined the cluster
     until: (join_result is not failed) and ((join_result is not changed) or ('Node already in the cluster.' in join_result.msg))
-    retries: 6
+    retries: -1
     delay: 10
     with_inventory_hostnames:
         - all:pve_slaves

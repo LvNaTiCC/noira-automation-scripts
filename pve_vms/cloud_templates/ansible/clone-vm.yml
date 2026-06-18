@@ -1,0 +1,17 @@
+- name: Clone VM before migration to all nodes
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ groups['pve_master'][0].split('.')[0] }}"
+    api_user: "{{ pve_user }}"
+    api_token_id: "automation"
+    api_token_secret: "{{ pve_secret }}"
+    vmid: "{{ 9000 + (image_index + 1) }}" 
+    newid: "{{ 9000 + (100 * (node_index + 1)) + (image_index + 1) }}"
+    node: "{{ groups['pve_master'][0].split('.')[0] }}"
+    clone: "abracadabra"
+    name: "{{ image.path.split('/')[-1] | replace('_', '-') }}"
+    storage: local-zfs-pool
+    timeout: 500
+  loop: "{{ groups['pve_slaves'] }}"
+  loop_control:
+    loop_var: node_name
+    index_var: node_index

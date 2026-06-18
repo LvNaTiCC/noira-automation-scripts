@@ -1,4 +1,4 @@
-- name: Prepare disks and OS for PVE cluster deployment
+- name: Prepare disks and fully deploy PVE 9
   hosts: pve_nodes
   roles: 
     - role: disks
@@ -7,6 +7,10 @@
       tags: rescue,day0,base-os
     - role: pve-9
       tags: rescue,day0,pve
+
+- name: ZFS Setup
+  hosts: pve_slaves
+  roles:
     - role: pve-zfs
       tags: pve-zfs,day0
 

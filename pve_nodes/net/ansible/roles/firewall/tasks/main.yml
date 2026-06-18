@@ -4,7 +4,7 @@
     systemctl enable nftables
 
 - name: Render nftables.conf
-  ansible.builtin.render:
+  ansible.builtin.template:
     src: templates/nftables.conf.j2
     dest: /etc/nftables.conf
 

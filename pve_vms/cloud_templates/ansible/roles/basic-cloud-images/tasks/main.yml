@@ -33,59 +33,119 @@
     patterns: '*.img,*.raw,*.qcow2'
   register: image_files
 
-- name: Create a blank vm for template
-  tags: template-creation
+- name: Retreive pve api user
+  delegate_to: localhost
   ansible.builtin.shell: |
-    qm create {{ 9000 + ansible_loop.index }} \
-      --cores 2 \
-      --sockets 1 \
-      --scsihw virtio-scsi-pci \
-      --cpu cputype=host \
-      --memory 2048 \
-      --name "{{ item.path.split('/')[-1] | replace('_', '-') }}" \
-      --start 0 \
-      --ostype l26
+    awk '/api-user/{print $2}' ../../../credentials.yml
+  register: pve_user_command_result
+
+- name: Retreive pve api user token secret
+  delegate_to: localhost
+  ansible.builtin.shell: |
+    awk '/api-token/{print $2}' ../../../credentials.yml
+  register: pve_secret_command_result
+
+- name: Set fact for pve api user
+  ansible.builtin.set_fact:
+    pve_user: '{{ pve_user_command_result.stdout }}'
+
+- name: Set fact for pve api secret
+  ansible.builtin.set_fact:
+    pve_secret: '{{ pve_secret_command_result.stdout }}'
+
+- name: Create new VMs
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ groups['pve_master'][0].split('.')[0] }}"
+    api_user: "{{ pve_user }}"
+    api_token_id: "automation"
+    api_token_secret: "{{ pve_secret }}"
+    vmid: "{{ 9000 + ansible_loop.index }}" 
+    name: "{{ item.path.split('/')[-1] | replace('_', '-') }}"
+    node: "{{ groups['pve_master'][0].split('.')[0] }}"
+    cores: 2
+    memory: 2048
+    cpu: "host"
+    scsihw: "virtio-scsi-pci"
+    ostype: "l26"
+    state: present
+    boot: order=scsi0;net0
+    ide:
+      ide2: "local-zfs-pool:cloudinit"
+    ciuser: "root"
+    cipassword: "password"
+    net: 
+      net0: virtio,bridge=vmbr0
+    description: |
+      "Ansible generated cloud template, made from {{ item.path.split('/')[-1] | replace('_', '-') }} image."
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
+
+- name: Check if disks are already imported
+  ansible.builtin.shell: |
+    qm config {{ 9000 + ansible_loop.index }}
+  loop: "{{ image_files.files }}"
+  loop_control:
+    extended: true
+  register: qm_config_results
 
 - name: Import the disk and attach the disk
   tags: template-creation
   ansible.builtin.shell: |
-    qm importdisk {{ 9000 + ansible_loop.index }} {{ item.path }} {{ template_storage }}
-    qm set {{ 9000 + ansible_loop.index }} --scsi0 {{ template_storage }}:vm-{{ 9000 + ansible_loop.index }}-disk-0,discard=on
-    qm set {{ 9000 + ansible_loop.index }} --boot 'order=scsi0'
+    qm importdisk {{ 9000 + ansible_loop.index }} {{ item.path }} local-zfs-pool
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
+  when: "{{ 'disk-0' not in qm_config_results.results | selectattr('item', 'equalto', item) | map(attribute='stdout') | string }}"
+
+- name: Attach disks properly
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ groups['pve_master'][0].split('.')[0] }}"
+    api_user: "{{ pve_user }}"
+    api_token_id: "automation"
+    api_token_secret: "{{ pve_secret }}"
+    node: "{{ groups['pve_master'][0].split('.')[0] }}"
+    vmid: "{{ 9000 + ansible_loop.index }}" 
+    update: true
+    update_unsafe: true
+    scsi: 
+      scsi0: "local-zfs-pool:vm-{{ 9000 + ansible_loop.index }}-disk-0,discard=on"
+  loop: "{{ image_files.files }}"
+  loop_control:
+    extended: true
+  when: "{{ 'scsi0: local-zfs-pool' not in qm_config_results.results | selectattr('item', 'equalto', item) | map(attribute='stdout') | string }}"
 
 - name: Convert vms to templates
-  tags: template-creation
-  ansible.builtin.shell: |
-    qm template {{ 9000 + ansible_loop.index }}
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ groups['pve_master'][0].split('.')[0] }}"
+    api_user: "{{ pve_user }}"
+    api_token_id: "automation"
+    api_token_secret: "{{ pve_secret }}"
+    vmid: "{{ 9000 + ansible_loop.index }}" 
+    state: template
   loop: "{{ image_files.files }}"
   loop_control:
     extended: true
 
-- name: Clone to all nodes
-  ansible.builtin.set_fact:
-    template_clone_commands: |
-      {% for node_index in range(2, (groups['pve_nodes'] | length) + 1) %}
-        {% for img_index in range(1, (cloud_images | length) + 1) %}
-      TEMPLATE_VMID={{ 9000 + img_index }}
-      TEMPLATE_NAME=$(qm config $TEMPLATE_VMID | grep '^name:' | awk '{print $2}')
-      NEW_TEMPLATE_VMID={{ 9000 + 100 * node_index + img_index }}
-      qm clone $TEMPLATE_VMID $NEW_TEMPLATE_VMID --storage {{ template_storage }} --full true --name $TEMPLATE_NAME
-      qm migrate $NEW_TEMPLATE_VMID {{"pve0" ~ node_index }} --with-local-disks
-      ssh -o StrictHostKeyChecking=no root@{{"pve0" ~ node_index }} qm template $NEW_TEMPLATE_VMID 
-        {% endfor %}
-      {% endfor %}
+- include_tasks: clone-vm.yml
+  loop: "{{ image_files.files }}"
+  loop_control:
+    loop_var: image
+    index_var: image_index
 
-- name: Perform clone operations
-  ansible.builtin.shell: |
-    {{ template_clone_commands }}
+- include_tasks: migrate-vm.yml
+  loop: "{{ image_files.files }}"
+  loop_control:
+    loop_var: image
+    index_var: image_index
 
-- name: Remove images
-  ansible.builtin.shell: >
-    rm -rf /tmp/cloud-images
+- include_tasks: template-vm.yml
+  loop: "{{ image_files.files }}"
+  loop_control:
+    loop_var: image
+    index_var: image_index
+
+# - name: Remove images
+#   ansible.builtin.shell: >
+#     rm -rf /tmp/cloud-images
 
