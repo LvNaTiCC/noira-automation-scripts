@@ -13,32 +13,26 @@ This specification is, until specificially mentioned, a wishlist of sorts. A vis
 1. Proxmox Virtual Environment as first-class Hypervisor. #DONE
 2. Docker swarm on top of PVE VMs
 4. Local vm storage based on ZFS for VMs #DONE
-5. Linstor storage for vms that can't tolerate +n minutes data loss or need live migration
-6. Mikrotik CHR Router for inter-vm communication and edge traffic control
+5. HA DNS and DHCP services on top of virtualization
 
 ## Networking Stack
 
 Network is built around several crucial pieces.
 
-For controlling edge traffic, DNAT/SNAT is used on hypervisors, forwarding a range of ports (80,443,60000-62000 by default, subject to change) to a virtual router (based on Mikrotik CHR). This configuration is supposed to stay immutable and not a subject to change (as for services as cattle principle). #TODO
-
-This virtual router is the one making decisions about what goes where and is the main configuration mutation point. The way network segmentation is built, is by creating bridges layered over VXVLAN on existing IP fabric. Those bridges are then attached to the CHR router for per-port network segment configuration. #TODO
-
-This router, being a single point of failure for the whole vm interconnect, will have a slice of Linstor storage pool. It will not perform much storage writes/reads, so it is alright to put it in linstor. #TODO
+For routing edge incoming traffic, source nat is used on pve nodes, forwarding a configurable set of ports to internal services inside the cluster. Virtual router is not used, because it becomes a bottleneck if there's just one, and overcomplicates the design if HA is implemented. An identical set of firewall on the pve nodes themselves presents all needed routing capability.
 
 The exact topology should be described using a GNS3 diagram. #TODO
 
 ## Observability
 
-For monitoring, classic prometheus + grafana will be used, on top of docker swarm with exporters reporting from PVE nodes and docker swarm cluster, as well as chr router.  #TODO
-
+For monitoring, classic prometheus + grafana will be used, on top of docker swarm with exporters reporting from PVE nodes and docker swarm cluster.  #TODO
 For a nice status page, Uptime Kuma will be used, on top of docker swarm. To make sure uptime kuma gets an external look, a proxy to an unrelated VPS is advised.  #TODO
 
 ## User AC and hardening
 
 No linux VM or otherwise should be ever be accessible from the internet without a proper AES256 ssh key. Services that allow login wia browser must be either well-hardened according to their documentation, or, if impossible, reasonably restricted by IP whitelist or other kind of secure authentication. Proxmox Web UI should not be accessible from the internet and should only be accessed using a terminal server either via xrdp or ssh tunneling passthrough.
 
-Service VMs, Hypervisors and the Virtual Router should exist on a service subnet, inaccessible for usual vm traffic, including docker swarm containers (they should use non-service subnet bindings). No traffic inside other network should be routable for the exception of bastion VMs. 
+Service VMs and Hypervisors should exist on a service subnet, inaccessible for usual vm traffic, including docker swarm containers (they should use non-service subnet bindings). No traffic inside other network should be routable for the exception of bastion VMs. 
 
 Root user account should be disabled for all internet-facing vms (including bastions), including potentially vulnerable web service.
 

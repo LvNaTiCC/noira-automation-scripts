@@ -1,0 +1,19 @@
+- name: Prepare disks and OS for PVE cluster deployment
+  hosts: pve_nodes
+  roles: 
+    - role: disks
+      tags: rescue,day0,disks
+    - role: base-os
+      tags: rescue,day0,base-os
+    - role: pve-9
+      tags: rescue,day0,pve
+    - role: pve-zfs
+      tags: pve-zfs,day0
+
+- name: Cluster setup
+  hosts: pve_master
+  roles:
+    - role: pve-cls-join
+      tags: cluster-setup,day0
+    - role: pve-api-token
+      tags: api-token-setup,day0

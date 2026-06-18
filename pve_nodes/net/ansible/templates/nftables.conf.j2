@@ -1,0 +1,43 @@
+#!/usr/sbin/nft -f
+flush ruleset
+
+table inet filter {
+    chain input {
+        # 1. Global INPUT drop
+        type filter hook input priority 0; policy drop;
+
+        # 2. Allow loopback traffic
+        iif "lo" accept;
+
+        # 3. Allow established and related connections
+        ct state { established, related } accept;
+        ct state { invalid } drop;
+
+        # 4. Allow SSH and PVE Web from WAN (8006 for now - NEEDS TO BE HARDENED LATER)
+        tcp dport 22 iifname "eno1" accept comment "Allow SSH on eno1";
+        tcp dport 8006 iifname "eno1" accept comment "Allow PVE Web TCP on eno1";
+
+        # 5. Allow internal fabric traffic
+        iifname "vmbr0" ip saddr {{ physical_cidr }} accept;
+    }
+    chain forward {
+        type filter hook forward priority 0; policy accept;
+        ct state { established, related } accept;
+    }
+}
+
+table ip nat {
+    chain postrouting {
+        type nat hook postrouting priority 100; policy accept;
+
+        oifname "vmbr0" ip saddr 10.0.0.0/8 masquerade
+    }
+}
+
+# This NFTables is made with an assumption that all networking will be managed through 
+# a single simple vmbr0 linux bridge on top of an existing outer VLAN interface enslaved to this bridge 
+# which provides enough networking for a small cluster deployment with a single tenant
+# This saves a lot of headache and makes sense for such a deployment.
+
+
+# Network security with this configuration can be achieved by making mac based firewall rules for untrusted VMs

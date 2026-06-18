@@ -1,0 +1,255 @@
+# Clean up section in case of a previously failed playbook run, to reduce manual intervention and reboots.
+###
+# Lazy umouting is used because failed runs tend to lock up the /mnt directory or it's subdirectories in a "busy" state, depending on where the failure occured.
+- name: Clean up mounts
+  tags: partitioning
+  ansible.builtin.shell: |
+    umount -l \ 
+      /mnt/proc \
+      /mnt/sys \
+      /mnt/dev \
+      /mnt/dev/pts \
+      /mnt/run \
+      /mnt
+  failed_when: false
+
+- name: Overwrite system disk with zeroes
+  tags: partitioning
+  ansible.builtin.shell: | 
+    dd if=/dev/zero of=/dev/md0 bs=1M count=2048 status=progress
+
+###
+# Partitioning section
+###
+- name: Create swap partition
+  tags: partitioning
+  community.general.parted:
+    device: /dev/md0
+    label: msdos
+    number: 1
+    part_start: 16MiB
+    part_end: -8GiB
+    state: present
+
+- name: Create debian root partition
+  tags: partitioning
+  community.general.parted:
+    device: /dev/md0
+    number: 2
+    part_start: -8GiB
+    part_end: 100%
+    state: present
+
+- name: Installl eatmydata
+  ansible.builtin.shell: |
+    apt install -y eatmydata
+
+- name: Format partitions
+  tags: partitioning
+  ansible.builtin.shell: |
+    mkfs.ext4 -L system /dev/md0p1
+    mkswap /dev/md0p2
+
+- name: Get root partition UUID
+  ansible.builtin.shell: |
+    blkid /dev/md0p1 | awk '{print $3; exit}'
+  register: root_partition_uuid_result
+
+- name: Get swap partition UUID
+  ansible.builtin.shell: |
+    blkid /dev/md0p2 | awk '{print $2; exit}'
+  register: swap_partition_uuid_result
+
+###
+# Debian 12 Install
+###
+- name: Mount debootstrap directory
+  tags: partitioning
+  ansible.builtin.shell: |
+    mount -t ext4 /dev/md0p1 /mnt
+
+- name: Run debootstrap
+  tags: debootstrap
+  ansible.builtin.shell: |
+    eatmydata debootstrap --arch amd64 trixie /mnt http://deb.debian.org/debian
+
+# https://manpages.debian.org/trixie/apt/sources.list.5.en.html
+- name: Add repositories
+  ansible.builtin.copy:
+    dest: /mnt/etc/apt/sources.list.d/debian.sources
+    content: |
+      Types: deb
+      URIs: http://deb.debian.org/debian
+      Suites: trixie trixie-updates
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+      Types: deb
+      URIs: http://deb.debian.org/debian-security
+      Suites: trixie-security
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+- name: Get default gateway
+  ansible.builtin.shell: |
+    ip route show default | awk '/default/ {print $3; exit}'
+  register: gateway_result
+  changed_when: false
+
+# Trixie Workaround (No configuration in chroot)
+- name: Ensure iproute2 configuration folder exists
+  ansible.builtin.file:
+    path: /mnt/etc/iproute2
+    state: directory
+    mode: '0755'
+
+# Trixie Workaround (No configuration in chroot)
+- name: Ensure iproute2 configuration rt_table file exists
+  ansible.builtin.file:
+    path: /mnt/etc/iproute2/rt_tables
+    state: touch
+
+# According to https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
+- name: Create routing table for vSwitch
+  ansible.builtin.lineinfile:
+    path: /mnt/etc/iproute2/rt_tables
+    line: "1 vswitch"
+    state: present
+
+# With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
+# Public ip is on untagged interface
+- name: Configure networking
+  ansible.builtin.copy:
+    dest: /mnt/etc/network/interfaces
+    content: |
+      auto eno1
+      iface eno1 inet static
+        address {{ ansible_host }}
+        gateway {{ gateway_result.stdout }}
+        netmask {{ physical_subnet_mask }}
+
+      auto eno1.{{ vlan_id }}
+      iface eno1.{{ vlan_id }} inet manual
+        vlan-raw-device eno1
+        mtu 1400
+      
+      auto vmbr0
+      iface vmbr0 inet static
+        bridge_ports eno1.{{ vlan_id }}
+        bridge_stp off
+        bridge_fd 0
+        bridge_maxwait 0
+        address {{ physical_subnet_prefix }}.{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}
+        netmask {{ physical_subnet_mask }}
+        mtu 1400
+
+# MBR-Style (No /boot mount)
+- name: Configure fstab
+  ansible.builtin.copy:
+    dest: /mnt/etc/fstab
+    content: |
+      {{ root_partition_uuid_result.stdout }} / ext4 defaults,noatime,nodiratime,commit=60  0  2
+      {{ swap_partition_uuid_result.stdout }} swap swap defaults 0 0
+
+- name: Add ssh authorized_keys
+  ansible.builtin.copy:
+    dest: /mnt/root/.ssh/authorized_keys
+    content: "{{ authorized_keys }}"
+
+# With vSwitch upstream support https://docs.hetzner.com/robot/dedicated-server/network/vswitch/
+- name: Configure resolv.conf
+  ansible.builtin.copy:
+    dest: /mnt/etc/resolv.conf
+    content: |
+      nameserver 1.1.1.1
+      nameserver 8.8.8.8
+
+- name: Configure /etc/hosts
+  ansible.builtin.copy:
+    dest: /mnt/etc/hosts
+    content: |
+      127.0.0.1       localhost
+      ::1             localhost ip6-localhost ip6-loopback
+      ff02::1         ip6-allnodes
+      ff02::2         ip6-allrouters
+      {{ physical_subnet_prefix }}.{{ groups['pve_nodes'].index(inventory_hostname) + 1 }}      {{ inventory_hostname }}
+
+###
+# Postinstall
+###
+- name: Bind virtual filesystems
+  ansible.posix.mount:
+    path: "/mnt/{{ item }}"
+    src: "/{{ item }}"
+    fstype: bind
+    opts: bind
+    state: mounted
+  loop: [proc, sys, dev, dev/pts, run]
+
+- name: Update package index inside chroot
+  ansible.builtin.shell: |
+    chroot /mnt apt update
+
+- name: Upgrade packages inside chroot
+  ansible.builtin.shell: |
+    eatmydata chroot /mnt apt upgrade -y
+
+- name: Install needed packages
+  ansible.builtin.shell: |
+    eatmydata chroot /mnt apt install -y \
+      linux-image-amd64 \
+      grub-pc \
+      wget \
+      lvm2 \
+      openssh-server \
+      mdadm bridge-utils \
+      vlan \
+      btrfs-progs \
+      snapper \
+      python3 \
+      python3-pip \
+      python3-venv
+
+- name: Save mdadm config into newroot
+  ansible.builtin.shell: |
+    mdadm --detail --scan | tee /mnt/etc/mdadm/mdadm.conf
+
+# - name: Prevent any further mdadm configuration modification during system updates
+#   ansible.builtin.shell: |
+#     chattr +i /mnt/etc/mdadm/mdadm.conf
+
+- name: Install grub to boot devices
+  ansible.builtin.shell: |
+    chroot /mnt grub-install {{ item }}
+  loop: "{{ blockdevs }}"
+
+- name: Generate grub configuration
+  ansible.builtin.shell: |
+    chroot /mnt update-grub
+
+- name: Enable OpenSSH Server
+  ansible.builtin.shell: |
+    chroot /mnt systemctl enable ssh
+
+- name: Change root password
+  ansible.builtin.shell: |
+    echo "root:{{ pve_root_password }}" | chroot /mnt chpasswd
+
+- name: Clean up mounts
+  tags: partitioning
+  ansible.builtin.shell: |
+    umount -l \ 
+      /mnt/proc \
+      /mnt/sys \
+      /mnt/dev \
+      /mnt/dev/pts \
+      /mnt/run \
+      /mnt
+  failed_when: false
+
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 3600
+    connect_timeout: 5
+    reboot_command: "systemctl reboot -f"
+###
+

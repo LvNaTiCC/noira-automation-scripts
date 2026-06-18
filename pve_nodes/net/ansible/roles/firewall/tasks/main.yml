@@ -1,0 +1,14 @@
+- name: Ensure nftables is running
+  ansible.builtin.shell: |
+    systemctl start nftables
+    systemctl enable nftables
+
+- name: Render nftables.conf
+  ansible.builtin.render:
+    src: templates/nftables.conf.j2
+    dest: /etc/nftables.conf
+
+- name: Check and apply nftables.conf
+  ansible.builtin.shell: |
+    nft -c -f /etc/nftables.conf
+    nft -f /etc/nftables.conf

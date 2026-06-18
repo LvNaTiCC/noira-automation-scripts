@@ -1,0 +1,5 @@
+- name: PVE Firewall Setup
+  hosts: pve_nodes
+  roles:
+    - role: firewall
+      tags: firewall

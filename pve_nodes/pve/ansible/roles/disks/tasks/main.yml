@@ -1,0 +1,71 @@
+- name: Clean up mounts
+  tags: partitioning
+  ansible.builtin.shell: |
+    umount -l \ 
+      /mnt/proc \
+      /mnt/sys \
+      /mnt/dev \
+      /mnt/dev/pts \
+      /mnt/run \
+      /mnt
+  failed_when: false
+
+- name: Stop all arrays
+  ansible.builtin.shell: mdadm --stop --scan
+
+- name: Overwrite disks with zeroes
+  tags: fresh-start
+  ansible.builtin.shell: dd if=/dev/zero of={{ item }} bs=1M count=256 status=progress
+  loop: "{{ blockdevs }}"
+
+- name: Create md array component partitions for base system 
+  community.general.parted:
+    device: "{{ item }}"
+    number: 1
+    label: msdos
+    state: present
+    part_start: 1GiB
+    part_end: "{{ pve_system_disk_size }}"
+  loop: "{{ blockdevs }}"
+
+- name: Create component partitions for redundant local vm disks
+  community.general.parted:
+    device: "{{ item }}"
+    number: 2
+    state: present
+    part_start: "{{ pve_system_disk_size }}"
+    part_end: "100%"
+  loop: "{{ blockdevs }}"
+
+- name: Build a list of all partitions
+  ansible.builtin.set_fact:
+    all_blockdev_partitions: >-
+      {{
+        blockdevs
+        | product(range(1,2))
+        | map('join', 'p')
+        | join(' ')
+      }}
+
+- name: Zero all superblocks from component disks
+  ansible.builtin.shell: >
+    mdadm --zero-superblock {{ all_blockdev_partitions }}
+
+- name: Wipefs from all partitions just in case
+  ansible.builtin.shell: >
+    wipefs --all --force {{ all_blockdev_partitions }}
+
+- name: Build a list of all system partitions
+  ansible.builtin.set_fact:
+    all_system_partitions: >-
+      {{
+        blockdevs
+        | product([1])
+        | map('join', 'p')
+        | join(' ')
+      }}
+
+- name: Create md array for linux base system
+  ansible.builtin.shell: >
+    mdadm --create /dev/md0 --level=1 --raid-devices={{ blockdevs|length }} {{ all_system_partitions }} --metadata=0.90 --name=pve-system
+

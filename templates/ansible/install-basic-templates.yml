@@ -1,4 +1,0 @@
-- name: Download, install and convert templates, set up replication
-  hosts: pve_master
-  roles:
-    - basic-cloud-images

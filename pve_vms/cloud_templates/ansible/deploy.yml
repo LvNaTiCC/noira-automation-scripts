@@ -1,0 +1,5 @@
+- name: PVE Basic Templates Installation
+  hosts: pve_master
+  roles:
+    - role: basic-cloud-images
+      tags: cloud-images
