@@ -19,6 +19,7 @@ table inet filter {
 
         # 5. Allow internal fabric traffic
         iifname "vmbr0" ip saddr {{ physical_cidr }} accept;
+        iifname "vmbr1" ip saddr {{ physical_cidr }} accept;
     }
     chain forward {
         type filter hook forward priority 0; policy accept;
@@ -30,6 +31,6 @@ table ip nat {
     chain postrouting {
         type nat hook postrouting priority 100; policy accept;
 
-        oifname "vmbr0" ip saddr 10.0.0.0/8 masquerade
+        oifname "eno1" ip saddr 10.0.0.0/8 masquerade
     }
 }

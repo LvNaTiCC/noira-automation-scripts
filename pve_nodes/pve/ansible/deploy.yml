@@ -9,7 +9,7 @@
       tags: rescue,day0,pve
 
 - name: ZFS Setup
-  hosts: pve_slaves
+  hosts: pve_nodes
   roles:
     - role: pve-zfs
       tags: pve-zfs,day0

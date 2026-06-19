@@ -1,3 +1,11 @@
+- name: Enable IPv4 forwarding natively
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
 - name: Ensure nftables is running
   ansible.builtin.shell: |
     systemctl start nftables

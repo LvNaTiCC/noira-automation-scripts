@@ -2,4 +2,6 @@
   hosts: pve_nodes
   roles:
     - role: firewall
-      tags: firewall
+      tags: networking
+    - role: local-exit-bridge
+      tags: networking
